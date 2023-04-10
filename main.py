@@ -1,3 +1,12 @@
+"""
+NOTES:
+-webscaper-
+
+TODO:
+-everything
+
+"""
+
 def main():
     print("brikolosssssssssssssss")
 
