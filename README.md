@@ -7,3 +7,5 @@ Nevím jak moc jste na ujepu probírali paralelizaci takže ohledne prezentace:
 
 slide n- paralelni a konkurentni programovani
 slide n+1- threading multiproccesing, async GIL
+
+Ideas-mužeme to udelat ve i formatu ipynb plus rovnou tam přidat i prezentaci. Zaleží na kodu, for now i am kinda lost tbh
