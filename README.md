@@ -25,7 +25,7 @@ Code na predstaveni problematiky.
 -files work
 
 Discord projekt
--setup
+-setup /n
 --vytvořit 15 tokenu
 --server
 --test jestli fungují
