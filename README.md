@@ -13,32 +13,55 @@ Ideas-mužeme to udelat ve i formatu ipynb plus rovnou tam přidat i prezentaci.
 # TODO:
 Celky:
 Uvedení do problematiky (prezentace)
+
 -async
+
 --gil, threading multiprocessing, paralelní, konkurentní
+
 -ostatní
+
 --discord api, api, web scraping
+
 --(udelat mini dokumentaci jak delat s discord api, keywords a mechaniky)
 
 Code na predstaveni problematiky.
+
 -crawler
+
 -scraper
+
 -files work
 
 Discord projekt
--setup /n
+
+-setup 
+
 --vytvořit 15 tokenu
+
 --server
+
 --test jestli fungují
+
 -code
+
 --simple commands
+
 --on message
+
 --interesting by bylo nechat boty mezi sebou comunicovat
+
 --jedna z tasku muže byt nejakej level system nebo neco co uchovává data
+
 --také nejaký reminder system
+
 --callovat open ai api 
+
 --scraper
+
 --scraper into neco jako nafta
+
 --scraper into youtubebot
+
 --scraper into pulling memes or something like that
 
 Navody a alternativy pastebinu
