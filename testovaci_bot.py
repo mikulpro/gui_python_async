@@ -1,6 +1,3 @@
-# TOKEN = 'MTA5OTQ3NTYzODkzNjY4Njc1NA.GA5dHl.BIwFO84mMyD1vb7nCDhPTcAd_le590imgtIU_k'
-# TOKEN = 'MTA5OTQ4MTkzNTYwMjAwNDAwOA.Gr4VNW.p0de3Qhgj7ACUsTX4tPH_DLrvuxUPgiw9hHW0Q'
-
 import discord
 import requests
 from bs4 import BeautifulSoup
