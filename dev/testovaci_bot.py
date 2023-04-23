@@ -1,32 +1,28 @@
-import discord
-import requests
-from bs4 import BeautifulSoup
-from discord.ext import commands
+import discord                                                          # Discord API
+import requests                                                         # knihovna pro HTTP requesty
+from bs4 import BeautifulSoup                                           # knihovna pro parsovani HTML
+from discord.ext import commands                                        # knihovna pro Discord boty
 
-intents = discord.Intents.default()  # Use default intents
-intents.typing = False  # Disable the 'typing' event
-intents.presences = False  # Disable the 'presences' event
+intents = discord.Intents.default()                                     # Intents jsou "zapouzrena" nastaveni discord opravneni pro bota
+intents.typing = True                                                   # Urcuje, jestli bot muze psat zpravy
+intents.presences = True                                                # Urcuje, jestli muze bot videt, kdyz se nekdo pripoji nebo odpoji
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='/', intents=intents)                 # Urci, jaky prefix musi byt pred kazdou zpravou, aby na ni bot reagoval
 
 @bot.event
 async def on_ready():
-    print(f'{bot.user} has connected to Discord!')
+    print(f'{bot.user} has connected to Discord!')                      # Jakmile prijde zprava, ze se bot pripojil, vypise se tento text
 
-@bot.command(name='gas_prices')
-async def gas_prices(ctx):
-    url = 'URL_OF_WEBSITE_TO_SCRAPE'  # Replace with the URL of the website you want to scrape
+@bot.command(name='gas_prices')                                         # Pri napsani zpravy "/gas_prices" se spusti tato funkce
+async def gas_prices(ctx):                                              # Jakmile prijde ocekavana zprava, spusti se tato funkce
+    url = 'https://gasprices.aaa.com/?state=VA'
     response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    soup = BeautifulSoup(response.content, 'html.parser')               # Ziskani HTML kodu stranky
+    gas_prices = soup.find_all('PRICE_ELEMENT', class_='PRICE_CLASS')   # Ziskani vsech elementu s tridou "PRICE_CLASS"
+    prices = '\n'.join([price.get_text() for price in gas_prices])      # Ziskani textu z kazdeho elementu
+    await ctx.send(f'**Gas Prices:**\n{prices}')                        # Odeslani zpravy s cenami
 
-    # Find the gas prices on the website
-    # Adjust the following code based on the structure of the website you're scraping
-    gas_prices = soup.find_all('PRICE_ELEMENT', class_='PRICE_CLASS')  # Replace 'PRICE_ELEMENT' and 'PRICE_CLASS' with appropriate values
 
-    # Extract the gas prices and format them as a string
-    prices = '\n'.join([price.get_text() for price in gas_prices])
-
-    # Send the gas prices to the Discord channel
-    await ctx.send(f'**Gas Prices:**\n{prices}')
-
-bot.run(TOKEN)
+if __name__ == '__main__':
+    TOKEN = ''
+    bot.run(TOKEN)
