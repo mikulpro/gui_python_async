@@ -3,8 +3,6 @@
 ## Úvod
 Přestože se jedná o předmět s názvem GUI, tak dnešní téma nebude demonstrováno na žádném Python modulu vyloženě pro grafiku, spíš představíme techniku asynchronního programování jako takovou, která je velmi užitečná právě pro programování grafického rozhraní, protože umožňuje frontend a backend například oddělit a nahlížet na ně jako na dva souběžně běžící celky, které spolu komunikují, ale její samotné praktické využití ponecháme na vaší fantasii.
 
-Při přípravě tohoto "kurzu" jsme se silně inspirovali online kurzem od JetBrains, jehož záznam je dostupný na YouTube. Pokud něco během dnešní čtyřhodinovky nepochopíte, můžete si odkaz na kurz najít v sekci *Zdroje* v powerpointové prezentaci.
-
 ## Pojem "asynchronní programování"
 Podle wikipedie pojem **Asynchronie**, v počítačovém programování, označuje výskyt "událostí" nezávislých na běhu hlavního programu, dále toto označení zahrnuje způsoby, jak s těmito "událostmi" nakládat.
 
