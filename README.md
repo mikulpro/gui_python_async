@@ -1,3 +1,31 @@
+# Asynchronní programování v Pythonu
+
+## Úvod
+Přestože se jedná o předmět s názvem GUI, tak dnešní téma nebude demonstrováno na žádném Python modulu vyloženě pro grafiku, spíš představíme techniku asynchronního programování jako takovou, která je velmi užitečná právě pro programování grafického rozhraní, protože umožňuje frontend a backend například oddělit a nahlížet na ně jako na dva souběžně běžící celky, které spolu komunikují, ale její samotné praktické využití ponecháme na vaší fantasii.
+
+Při přípravě tohoto "kurzu" jsme se silně inspirovali online kurzem od JetBrains, jehož záznam je dostupný na YouTube. Pokud něco během dnešní čtyřhodinovky nepochopíte, můžete si odkaz na kurz najít v sekci *Zdroje* v powerpointové prezentaci.
+
+## Pojem "asynchronní programování"
+Podle wikipedie pojem **Asynchronie**, v počítačovém programování, označuje výskyt "událostí" nezávislých na běhu hlavního programu, dále toto označení zahrnuje způsoby, jak s těmito "událostmi" nakládat.
+
+
+
+
+**JAK JE Z TEXTU VÝŠE ZŘEJMÉ, FAKT, ŽE NĚJAKÉ ČÁSTI PROGRAMU BĚŽÍ ASYNCHRONNĚ/KONKURENTNĚ, NUTNĚ NEZNAMENÁ, ŽE VYUŽÍVÍÁ PARALELIZACI, SUBPROCESSING ČI MULTITHREADING.**
+
+## Zadání úkolů
+0. Ujistěte se, že máte nainstalovaný Python interpreter alespoň verze 3.7. (https://www.python.org/downloads/) či novější a že máte nainstalované všechny následující moduly: asyncio, discord, trio, unsync, uvloop
+`python -m pip install asyncio`
+`python -m pip install discord`
+`python -m pip install trio`
+`python -m pip install unsync`
+`python -m pip install uvloop`
+1. Naklonujte si tento repozitář, nebo si ho stáhněte jako zip soubor. Pro tento "kurz" nebude zapotřebí nic commitovat a pushovat.
+2. V adresáři *presentation* se podívejte na rozdíly mezi implementací jednoduchého web-scrape skriptu bez využití asychronity a s jejím využitím.
+3. V adresáři *metrials* naleznete připravené základní skripty pro zprovoznění Discord bota. Připojte se na náš testovací server pomocí tohoto odkazu:  https://discord.gg/7WJK57dcCv  Po připojení si řekněte Prokopovi nebo Filipovi o token pro jednoho z botů a zprovozněte ho tak, aby byl na Discordu zobrazený ve stavu *online*. (Stav online se značí tou zelenou tečkou vedle jména uživatele.)
+4. Seznamte se s již implementovanými funkcemi vašeho bota a poté implementujte další konkurentně běžící funkce, které budou využívat Discord API. (Například příkaz, který bude zobrazovat aktuální počet uživatelů na serveru, nebo příkaz, který bude zobrazovat aktuální počet zpráv v kanálu.)
+5. Zlatým hřebem dnešní GUI hodiny by mělo být to, že se vám podaří implementovat do bota nějaký web-scraper, který bude využívat asynchronního programování. (Například scraper, který bude zobrazovat aktuální kurz bitcoinu, nebo scraper, který bude zobrazovat aktuální ceny Natural95 v různých benzínkách fungujících na území ČR.)
+
 # Asynchronous Programming in Python
 This repository servers as material deployment place for student semestral project in GUI subject taught at Jan Evnagelista Purkyně's University.
 
