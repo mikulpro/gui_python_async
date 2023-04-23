@@ -14,7 +14,7 @@ Podle wikipedie pojem **Asynchronie**, v počítačovém programování, označu
 **JAK JE Z TEXTU VÝŠE ZŘEJMÉ, FAKT, ŽE NĚJAKÉ ČÁSTI PROGRAMU BĚŽÍ ASYNCHRONNĚ/KONKURENTNĚ, NUTNĚ NEZNAMENÁ, ŽE PROGRAM VYUŽÍVÁ PARALELIZACI, SUBPROCESSING ČI MULTITHREADING.**
 
 ## Zadání úkolů
-0. Ujistěte se, že máte nainstalovaný Python interpreter alespoň verze 3.7. (https://www.python.org/downloads/) či novější a že máte nainstalované všechny následující moduly: asyncio, discord, trio, unsync, uvloop
+0. Ujistěte se, že máte nainstalovaný Python interpreter alespoň verze 3.7. (https://www.python.org/downloads/) či novější a že máte nainstalované všechny následující moduly: asyncio, discord, trio, unsync, uvloop, pycord
 `python -m pip install asyncio`
 `python -m pip install discord`
 `python -m pip install trio`
@@ -23,7 +23,7 @@ Podle wikipedie pojem **Asynchronie**, v počítačovém programování, označu
 1. Naklonujte si tento repozitář, nebo si ho stáhněte jako zip soubor. Pro tento "kurz" nebude zapotřebí nic commitovat a pushovat.
 2. V adresáři *presentation* se podívejte na rozdíly mezi implementací jednoduchého web-scrape skriptu bez využití asychronity a s jejím využitím.
 3. V adresáři *metrials* naleznete připravené základní skripty pro zprovoznění Discord bota. Připojte se na náš testovací server pomocí tohoto odkazu:  https://discord.gg/7WJK57dcCv  Po připojení si řekněte Prokopovi nebo Filipovi o token pro jednoho z botů a zprovozněte ho tak, aby byl na Discordu zobrazený ve stavu *online*. (Stav online se značí tou zelenou tečkou vedle jména uživatele.)
-4. Seznamte se s již implementovanými funkcemi vašeho bota a poté implementujte další konkurentně běžící funkce, které budou využívat Discord API. (Například příkaz, který bude zobrazovat aktuální počet uživatelů na serveru, nebo příkaz, který bude zobrazovat aktuální počet zpráv v kanálu.) Použijte oficiální Discord API dokumentaci: https://discord.com/developers/docs/intro
+4. Seznamte se s již implementovanými funkcemi vašeho bota a poté implementujte další konkurentně běžící funkce, které budou využívat Discord API. (Například příkaz, který bude zobrazovat aktuální počet uživatelů na serveru, nebo příkaz, který bude zobrazovat aktuální počet zpráv v kanálu.) Použijte oficiální Discord API dokumentaci: https://discord.com/developers/docs/intro Alternativně můžete použít modul Pycord, jehož dokumentace je dostupná zde: https://docs.pycord.dev/en/stable/ 
 5. Zlatým hřebem dnešní GUI hodiny by mělo být to, že se vám podaří implementovat do bota nějaký web-scraper, který bude využívat asynchronního programování. (Například scraper, který bude zobrazovat aktuální kurz bitcoinu, nebo scraper, který bude zobrazovat aktuální ceny Natural95 v různých benzínkách fungujících na území ČR.)
 
 # Asynchronous Programming in Python
