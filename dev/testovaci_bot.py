@@ -1,13 +1,13 @@
 import discord                                                          # Discord API
 import requests                                                         # knihovna pro HTTP requesty
 from bs4 import BeautifulSoup                                           # knihovna pro parsovani HTML
-from discord.ext import commands                                        # knihovna pro Discord boty
+from discord.ext.commands import Bot, has_permissions                   # knihovna pro Discord boty
 
-intents = discord.Intents.default()                                     # Intents jsou "zapouzrena" nastaveni discord opravneni pro bota
+intents = discord.Intents.all()                                         # Intents jsou "zapouzrena" nastaveni discord opravneni pro bota
 intents.typing = True                                                   # Urcuje, jestli bot muze psat zpravy
 intents.presences = True                                                # Urcuje, jestli muze bot videt, kdyz se nekdo pripoji nebo odpoji
 
-bot = commands.Bot(command_prefix='/', intents=intents)                 # Urci, jaky prefix musi byt pred kazdou zpravou, aby na ni bot reagoval
+bot = Bot(command_prefix='/', intents=intents)                          # Urci, jaky prefix musi byt pred kazdou zpravou, aby na ni bot reagoval
 
 @bot.event
 async def on_ready():
