@@ -45,7 +45,7 @@ def main():
 
     uplynuly_cas = -1
     urls = []
-    for i in range(0, 413):
+    for i in range(0, 80): # pro ucely zrychleni demonstrace snizeno ze 413 na 80
         urls.append(f'https://talkpython.fm/{i}')
     
     pocatecni_cas = time.time()    
