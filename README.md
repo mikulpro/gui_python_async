@@ -11,7 +11,7 @@ Podle wikipedie pojem **Asynchronie**, v počítačovém programování, označu
 
 
 
-**JAK JE Z TEXTU VÝŠE ZŘEJMÉ, FAKT, ŽE NĚJAKÉ ČÁSTI PROGRAMU BĚŽÍ ASYNCHRONNĚ/KONKURENTNĚ, NUTNĚ NEZNAMENÁ, ŽE VYUŽÍVÍÁ PARALELIZACI, SUBPROCESSING ČI MULTITHREADING.**
+**JAK JE Z TEXTU VÝŠE ZŘEJMÉ, FAKT, ŽE NĚJAKÉ ČÁSTI PROGRAMU BĚŽÍ ASYNCHRONNĚ/KONKURENTNĚ, NUTNĚ NEZNAMENÁ, ŽE PROGRAM VYUŽÍVÁ PARALELIZACI, SUBPROCESSING ČI MULTITHREADING.**
 
 ## Zadání úkolů
 0. Ujistěte se, že máte nainstalovaný Python interpreter alespoň verze 3.7. (https://www.python.org/downloads/) či novější a že máte nainstalované všechny následující moduly: asyncio, discord, trio, unsync, uvloop
