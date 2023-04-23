@@ -10,47 +10,50 @@ def ziskej_stranku_v_html(url_stranky):
     else:
         print(f"Error: Nebylo mozne ziskat data z {url_stranky}")
         return None
-
-def main():
-    url =  'http://books.toscrape.com/'
-    stranka_v_html = ziskej_stranku_v_html(url)
-    uplynuly_cas = -1
     
+def scrapni_stranku(url, cislo_stranky=None):
+    stranka_v_html = ziskej_stranku_v_html(url)
+
     if stranka_v_html is not None:
 
         # vymazani predesleho docasneho ulozeni stranky
         try:
             remove('temp.html')
-            remove('book_prices.csv')
         except:
             pass
-
-        pocatecni_cas = time.time()
 
         # ukladani do temp.html pro debugovani
         with open('temp.html', 'x', encoding='utf-8') as docasny_soubor:
             docasny_soubor.write(stranka_v_html)
 
-        # hledani knih na strance a nacitani jejich nazvu a cen
+        # hledani nazvu epizod na strance
         obsah = BeautifulSoup(stranka_v_html, 'html.parser')
-        nalezene_knihy = []
-
-        for kniha in obsah.find_all('article', class_='product_pod'):
-            nazev = kniha.find('h3').find('a')['title']
-            cena = kniha.find('p', class_='price_color').text
-            nalezene_knihy.append({'nazev': nazev, 'cena': cena})
-
-        # analyya cen knih
-        with open('book_prices.csv', 'x', encoding='utf-8') as prehled_cen:
-            for kniha in nalezene_knihy:
-                prehled_cen.write(f"{kniha['nazev']} : {kniha['cena']}\n")
-
-        koncovy_cas = time.time()
-        uplynuly_cas = koncovy_cas - pocatecni_cas
-
+        titulek = obsah.select_one('h1')
+        if titulek is None:
+            titulek = "TITULEK NENALEZEN"
+        with open('episode_titles.csv', 'a+', encoding='utf-8') as prehled_epizod:
+            prehled_epizod.write(f"{titulek}\n")
     else:
-        print("Neco se pokazilo.")
+        print(f"Stranku https://talkpython.fm/{cislo_stranky} se nepodarilo nacist.")
 
+
+def main():
+    try:
+        remove('episode_titles.csv')
+    except:
+        pass
+
+    uplynuly_cas = -1
+    urls = []
+    for i in range(0, 413):
+        urls.append(f'https://talkpython.fm/{i}')
+    
+    pocatecni_cas = time.time()    
+    for i in range(len(urls)):
+        scrapni_stranku(urls[i], i)
+    koncovy_cas = time.time()
+
+    uplynuly_cas = koncovy_cas - pocatecni_cas
     print(f"Od zacatku do konce main() ubehlo {uplynuly_cas} sekund.")
 
 if __name__ == '__main__':
