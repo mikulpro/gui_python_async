@@ -6,14 +6,9 @@ Přestože se jedná o předmět s názvem GUI, tak dnešní téma nebude demons
 ## Pojmy
 Pojem **Asynchronie**, v počítačovém programování, označuje výskyt "událostí" nezávislých na běhu hlavního programu, dále toto označení zahrnuje způsoby, jak s těmito "událostmi" nakládat. Tyto "události" mohou být například příchozí zprávy, signály, změny stavu, nebo dokonce i chyby. Asynchronní programování je tedy programování, které umožňuje běh hlavního programu i při výskytu těchto "událostí".
 
-Slovem **Konkurence** se nazývá situace, kdy je v daném okamžiku spuštěno více procesů, které se vzájemně ovlivňují. V případě, že se jedná o procesy, které běží na jednom fyzickém procesoru, ale využívají nějaký způsob časového dělení, tak se jedná o **konkurentní programování**.
+Slovem **Konkurence** se nazývá situace, kdy je v daném okamžiku spuštěno více procesů, které se vzájemně ovlivňují. V případě, že se jedná o procesy, které běží na jednom fyzickém procesoru, ale využívají nějaký způsob časového dělení, tak se jedná o **konkurentní programování**. Konkurentní programování si můžeme představit tak, že ve chvíli, kdy jeden proces na něco čeká a jen by zabíral CPU prázdnými instrukcemi, tak je "odložen" vedle a místo něj využívá CPU jiný proces, který zrovna má na práci něco smysluplnějšího než na něco pouze čekat. Dokonce jsou i případy, kdy je konkurence naprosto nezbytná, neboť některé části programu většinu svého času pouze čekají - např. Discord bot neustále čeká, jestli ve zprávách nedostane příkaz, na který musí zareagovat, ale zároveň s tím musí plnit i všechny další úkoly, pro které byl stvořen, třeba ukazovat čas, nebo pouštět hudbu.
 
-Slovem **Paralelizace** se nazývá situace, kdy je v daném okamžiku spuštěno více procesů, které běží na různých fyzických procesorech / jádrech.
-
-
-
-
-**JAK JE Z TEXTU VÝŠE ZŘEJMÉ, FAKT, ŽE NĚJAKÉ ČÁSTI PROGRAMU BĚŽÍ ASYNCHRONNĚ/KONKURENTNĚ, NUTNĚ NEZNAMENÁ, ŽE PROGRAM VYUŽÍVÁ PARALELIZACI, SUBPROCESSING ČI MULTITHREADING.**
+Slovem **Paralelizace** se nazývá situace, kdy je v daném okamžiku spuštěno více procesů, které běží na různých fyzických procesorech / jádrech. Použití paralelizace a konkurence zároveň může značně zefektivnit práci našeho programu.
 
 ## Zadání úkolů
 0. Ujistěte se, že máte nainstalovaný Python interpreter alespoň verze 3.7. (https://www.python.org/downloads/) či novější a že máte nainstalované všechny následující moduly: asyncio, discord, trio, unsync, uvloop, pycord
