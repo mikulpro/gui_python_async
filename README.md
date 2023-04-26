@@ -6,7 +6,7 @@ Přestože se jedná o předmět s názvem GUI, tak dnešní téma nebude demons
 ## Pojmy
 Pojem **Asynchronie**, v počítačovém programování, označuje výskyt "událostí" nezávislých na běhu hlavního programu, dále toto označení zahrnuje způsoby, jak s těmito "událostmi" nakládat. Tyto "události" mohou být například příchozí zprávy, signály, změny stavu, nebo dokonce i chyby. Asynchronní programování je tedy programování, které umožňuje běh hlavního programu i při výskytu těchto "událostí".
 
-Slovem **Konkurence** se nazývá situace, kdy je v daném okamžiku spuštěno více procesů, které se vzájemně ovlivňují. V případě, že se jedná o procesy, které běží na jednom fyzickém procesoru, ale využívají nějaký způsob časového dělení, tak se jedná o **konkurentní programování**. ¨
+Slovem **Konkurence** se nazývá situace, kdy je v daném okamžiku spuštěno více procesů, které se vzájemně ovlivňují. V případě, že se jedná o procesy, které běží na jednom fyzickém procesoru, ale využívají nějaký způsob časového dělení, tak se jedná o **konkurentní programování**.
 
 Slovem **Paralelizace** se nazývá situace, kdy je v daném okamžiku spuštěno více procesů, které běží na různých fyzických procesorech / jádrech.
 
