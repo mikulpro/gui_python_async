@@ -15,13 +15,8 @@ class MyBot(commands.Bot):
     
     # the method to override in order to run whatever you need before your bot starts
     async def setup_hook(self):     #for extencion of initial extencions
-        await self.load_extension("cogs.remindercog")
-        await self.load_extension("cogs.basiccog")
         await self.load_extension("cogs.openaicog")
-        await self.load_extension("cogs.chesscog")
-        await self.load_extension("cogs.voicecog")
-        await self.load_extension("cogs.ytscraper")
+        await self.load_extension("cogs.basiccog")
     
-
-MyBot().run('MTA5ODU0NTA3NjY5Njc5NzI0Ng.Gpjvqi.hlXGUX9xuVwDnmmaQ-o7NoROpVkkaaISuObalI')
+MyBot().run('your api token')
 

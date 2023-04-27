@@ -3,9 +3,9 @@ from discord.ext import commands
 import random
 
 
-intents = discord.Intents.all()()
+intents = discord.Intents.all()
 
-bot = commands.Bot(command_prefix='?', description=description, intents=intents)
+bot = commands.Bot(command_prefix='?', intents=intents)
 
 @bot.event
 async def on_ready():
@@ -13,7 +13,7 @@ async def on_ready():
     print('------')
 
 @bot.event
-async def on_message(self, message):
+async def on_message(message):
     if message.content.startswith('Kdo'):
         await message.channel.send('se ptal')       
      
@@ -57,4 +57,4 @@ async def _bot(ctx):
     await ctx.send('Yes, the bot is cool.')
 
 
-bot.run('YOURTOKEN')
+bot.run('your api token')
