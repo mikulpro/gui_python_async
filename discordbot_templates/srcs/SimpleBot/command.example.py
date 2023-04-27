@@ -1,27 +1,22 @@
-# This example requires the 'members' and 'message_content' privileged intents to function.
-
 import discord
 from discord.ext import commands
 import random
 
-description = '''An example bot to showcase the discord.ext.commands extension
-module.
 
-There are a number of utility commands being showcased here.'''
-
-intents = discord.Intents.default()
-intents.members = True
-intents.message_content = True
+intents = discord.Intents.all()()
 
 bot = commands.Bot(command_prefix='?', description=description, intents=intents)
-
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
 
-
+@bot.event
+async def on_message(self, message):
+    if message.content.startswith('Kdo'):
+        await message.channel.send('se ptal')       
+     
 @bot.command()
 async def add(ctx, left: int, right: int):
     """Adds two numbers together."""
@@ -62,4 +57,4 @@ async def _bot(ctx):
     await ctx.send('Yes, the bot is cool.')
 
 
-bot.run('MTA5ODU0NTA3NjY5Njc5NzI0Ng.Gpjvqi.hlXGUX9xuVwDnmmaQ-o7NoROpVkkaaISuObalI')
+bot.run('YOURTOKEN')

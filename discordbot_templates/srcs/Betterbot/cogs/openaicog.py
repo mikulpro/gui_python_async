@@ -1,6 +1,6 @@
 from discord.ext import commands
 import openai
-APIKEY = "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"
+APIKEY = "your api key"
 openai.api_key = APIKEY
 
 class OpenAICog(commands.Cog):

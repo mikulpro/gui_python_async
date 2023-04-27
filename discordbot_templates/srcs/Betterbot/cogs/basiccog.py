@@ -9,18 +9,12 @@ class ExampleCog(commands.Cog):
 	
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.content.startswith('Rekurze'):
-            await message.channel.send(f'{message.content} co to je sakra?')
-        if message.author.bot:
-            return
-        if message.content.startswith('Based'):
-            await message.channel.send('Based? Based on what regard.') 
+        pass
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
         channel = member.guild.system_channel
-        if channel is not None:
-            await channel.send(f'Welcome {member.mention} to Hell.')
+        pass
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -33,24 +27,15 @@ class ExampleCog(commands.Cog):
 
     @commands.command()
     async def HowIamIfeeling(self, ctx):
-        """Emoticon"""
-        await ctx.send("<:PepeKMS:776788745461825557> ")
+        pass
 
     @commands.command()
     async def lol(self, ctx):
-        """More or less hello world"""
-        await ctx.send("lol indeed")
+        pass
 
     @commands.command()
     async def roll(self, ctx, dice: str):
-        """Rolls a dice in NdN format."""
-        try:
-            rolls, limit = map(int, dice.split('d'))
-        except Exception:
-            await ctx.send('Format has to be in NdN!')
-            return
-        result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
-        await ctx.send(result)
+        pass
 
 async def setup(bot):
     await bot.add_cog(ExampleCog(bot))
