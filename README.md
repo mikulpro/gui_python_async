@@ -33,6 +33,9 @@ Jakmile máte rozvržený program na funkce, jednou z možností je definovat je
 1. Naklonujte si tento repozitář, nebo si ho stáhněte jako zip soubor. Pro tento "kurz" nebude zapotřebí nic commitovat a pushovat.
 2. Vytvořte virtualní prostředí
 ```bash
+py -m pip install --user virtualenv
+```
+```bash
 py -m venv env
 ```
 ```bash
