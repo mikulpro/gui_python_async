@@ -56,5 +56,13 @@ async def _bot(ctx):
     """Is the bot cool?"""
     await ctx.send('Yes, the bot is cool.')
 
+#Priklad background tasky
+"""
+@tasks.loop(seconds=600)  # task runs every 60 seconds
+    async def my_background_task(self):
+        channel = get_channel(1234567)  # channel ID goes here
+    
+        await channel.send("still alive")
+"""
 
 bot.run('your api token')
