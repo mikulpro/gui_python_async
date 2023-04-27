@@ -1,0 +1,9 @@
+aiohttp==3.7.4.post0
+beautifulsoup4==4.10.0
+chess==1.9.4
+discord.py==2.2.2
+google_api_python_client==2.86.0
+httpx==0.24.0
+openai==0.27.4
+Requests==2.29.0
+youtube_dl==2021.12.17
