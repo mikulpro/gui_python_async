@@ -19,40 +19,26 @@ Python je interpretovaný jazyk a jeho interpretr se snaží chránit programát
 
 Příkladem knihovny, která GIL obchází, je třeba numpy využívající nízkoúrovňové funkce napsané v jazyce C a následně zkompilované, které GIL obcházejí.
 
+## Základní postup použití knihovny asyncio
+Základem použití modulu asyncio je rozmyslet si, které úkony vašeho programu budou obsahovat vysoké procento prázdných / čekacích instrukcí. To jsou zpravidla úkony stahování něčeho z nějakého serveru, kde se musí poslat dotaz na server a čekat na odpověď ze serveru, také třeba v případě Discord bota čekání na zprávu od uživatele, nebo třeba čekání na odpověď od databáze. Všechny tyto úkony jsou ideální k tomu, aby se v případě potřeby odložily a nechalo se tak místo pro jiné úkony, které mohou být vykonány v mezidobí, kdy se čeká na odpověď ze serveru.
+
+Tyhle úkony by se měly rozdělit do oddělených funkcí, jejichž struktura se od standardních funkcí liší ve dvou aspektech. Jednak se definují jako asynchronní, tedy místo "def" se napíše "async def", a jednak se v nich musí vyznačit místa, v nichž bude docházet k dlouhému čekání, příkazem "await". Slovo "await" lze přeložit do češtiny přeložit jako "očekávej", takže vlastně říkáme funkci, kde má "očekávat" nějakou návratovou hodnotu, která ale nepřijde hned.
+
+Jakmile máte rozvržený program na funkce, jednou z možností je definovat jednotlivé úkony (nazývané "tasky"), naskládat je do seznamu a nechat program vykonat všechny tasky v seznamu s tím, že je může dělat asynchronně. To je možné udělat tak, že vytvoříte instanci objektu event loop, respektive získáte jedinou existující instanci objektu event loop, protože se jedná o singleton, pomocí `nazev = asyncio.get_event_loop()`, vytvoříte seznam tasků `moje_tasky = []; moje_tasky.append(nazev.create_task(moje_funkce()))` a následně pomocí `nazev.run_until_complete(funkce_s_mymi_tasky())` necháte vykonat všechny tasky v seznamu. `funkce_s_mymi_tasky()` by v tomto případě byla koncipovaná stylem `for task in moje_tasky: await task`.
+
 ## Zadání úkolů
-0. Ujistěte se, že máte nainstalovaný Python interpreter alespoň verze 3.7. (https://www.python.org/downloads/) či novější a že máte nainstalované všechny následující moduly: asyncio, discord, trio, unsync, uvloop, pycord
+0. Ujistěte se, že máte nainstalovaný Python interpreter alespoň verze 3.7. (https://www.python.org/downloads/) či novější a že máte nainstalované všechny následující moduly: asyncio, discord
 `python -m pip install asyncio`
 `python -m pip install discord`
-`python -m pip install trio`
-`python -m pip install unsync`
-`python -m pip install uvloop`
 1. Naklonujte si tento repozitář, nebo si ho stáhněte jako zip soubor. Pro tento "kurz" nebude zapotřebí nic commitovat a pushovat.
 2. V adresáři *presentation* se podívejte na rozdíly mezi implementací jednoduchého web-scrape skriptu bez využití asychronity a s jejím využitím.
 3. V adresáři *metrials* naleznete připravené základní skripty pro zprovoznění Discord bota. Připojte se na náš testovací server pomocí tohoto odkazu:  https://discord.gg/7WJK57dcCv  Po připojení si řekněte Prokopovi nebo Filipovi o token pro jednoho z botů a zprovozněte ho tak, aby byl na Discordu zobrazený ve stavu *online*. (Stav online se značí tou zelenou tečkou vedle jména uživatele.)
 4. Seznamte se s již implementovanými funkcemi vašeho bota a poté implementujte další konkurentně běžící funkce, které budou využívat Discord API. (Například příkaz, který bude zobrazovat aktuální počet uživatelů na serveru, nebo příkaz, který bude zobrazovat aktuální počet zpráv v kanálu.) Použijte oficiální Discord API dokumentaci: https://discord.com/developers/docs/intro Alternativně můžete použít modul Pycord, jehož dokumentace je dostupná zde: https://docs.pycord.dev/en/stable/ 
 5. Zlatým hřebem dnešní GUI hodiny by mělo být to, že se vám podaří implementovat do bota nějaký web-scraper, který bude využívat asynchronního programování. (Například scraper, který bude zobrazovat aktuální kurz bitcoinu, nebo scraper, který bude zobrazovat aktuální ceny Natural95 v různých benzínkách fungujících na území ČR.)
 
-# Asynchronous Programming in Python
-This repository servers as material deployment place for student semestral project in GUI subject taught at Jan Evnagelista Purkyně's University.
-
-Zatim tu máš cool script prokope, feel free to test (https://www.youtube.com/watch?v=ftmdDlwMwwQ)
-
-Nevím jak moc jste na ujepu probírali paralelizaci takže ohledne prezentace:
-
-slide n- paralelni a konkurentni programovani
-slide n+1- threading multiproccesing, async GIL
-
-Ideas-mužeme to udelat ve i formatu ipynb plus rovnou tam přidat i prezentaci. Zaleží na kodu, for now i am kinda lost tbh
 
 # TODO:
 Celky:
-Uvedení do problematiky (prezentace)
-
--async
-
---gil, threading multiprocessing, paralelní, konkurentní
-
--ostatní
 
 --discord api, api, web scraping
 
@@ -69,8 +55,6 @@ Code na predstaveni problematiky.
 Discord projekt
 
 -setup 
-
---vytvořit 15 tokenu
 
 --server
 
