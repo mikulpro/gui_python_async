@@ -23,5 +23,5 @@ class MyBot(commands.Bot):
         await self.load_extension("cogs.ytscraper")
     
 
-MyBot().run('MTA5ODU0NTA3NjY5Njc5NzI0Ng.Gpjvqi.hlXGUX9xuVwDnmmaQ-o7NoROpVkkaaISuObalI')
+MyBot().run('your api token')
 
