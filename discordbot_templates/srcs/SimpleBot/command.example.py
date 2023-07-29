@@ -11,11 +11,7 @@ bot = commands.Bot(command_prefix='?', intents=intents)
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
-
-@bot.event
-async def on_message(message):
-    if message.content.startswith('Kdo'):
-        await message.channel.send('se ptal')       
+     
      
 @bot.command()
 async def add(ctx, left: int, right: int):
@@ -67,4 +63,4 @@ async def _bot(ctx):
 #https://github.com/Rapptz/discord.py/tree/v2.2.2/examples
 #More code
 
-bot.run('your api token')
+bot.run('')
