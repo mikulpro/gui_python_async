@@ -1,3 +1,5 @@
+**Tohle je verze pro odevzdání!**
+
 # Asynchronní programování v Pythonu
 
 ## Úvod
