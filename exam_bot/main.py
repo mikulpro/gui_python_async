@@ -4,6 +4,7 @@ from bot_core import BotCore
 import asyncio
 import threading
 
+# konstanty pro snapovani bloku
 TRESHOLD = 5
 CANVAS_WIDTH = 1700
 CANVAS_HEIGHT = 900
@@ -17,6 +18,7 @@ class SnappableRectangle:
         self.delete_button = tk.Button(canvas, text="Delete", command=self.delete_rectangle)
 
     def delete_rectangle(self):
+        #TODO: odstranit pripojeny soubor ze slozky pro cogy
         for rect in self.connected_rectangles:
             rect.connected_rectangles.remove(self)
         self.canvas.delete(self.rect)
@@ -33,8 +35,10 @@ def on_drag(event):
     if selected_rectangle:
         snapped_rect = snap_together(selected_rectangle, x, y)
         if snapped_rect:
+            #TODO: pridat prirazeny soubor do slozky pro cogy
             align_rectangles(selected_rectangle, snapped_rect, x, y)
         else:
+            #TODO: odstranit pripojeny soubor ze slozky pro cogy, pokud doslo k odpojeni
             canvas.move(selected_rectangle, x, y)
             move_delete_button(selected_rectangle, x, y)
     prev_x, prev_y = event.x, event.y
@@ -90,6 +94,7 @@ def align_rectangles(rect1, rect2, x, y):
     move_delete_button(rect1, x + x_offset, y + y_offset)
 
 def spawn_rectangle():
+    #TODO: priradit k rectanglu konkretni soubor
     x1, y1 = 50, 50
     x2, y2 = 150, 150
     new_rectangle = SnappableRectangle(canvas, x1, y1, x2, y2, "green")
