@@ -25,3 +25,9 @@ class BotCore:
             print(f'{bot.user} has connected to Discord!')
 
         bot.run(self.token)
+
+    async def setup_hook(self):
+        #TODO:
+        # for file in list s aktivnimi cogy
+        # await self.load_extension("cesta k souboru")
+        ...
