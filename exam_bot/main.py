@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import simpledialog
+from tkinter import simpledialog, filedialog
 from bot_core import BotCore
 import asyncio
 import threading
@@ -16,6 +16,8 @@ class SnappableRectangle:
         self.rect = canvas.create_rectangle(x1, y1, x2, y2, fill=fill, tags="rectangle")
         self.connected_rectangles = []
         self.delete_button = tk.Button(canvas, text="Delete", command=self.delete_rectangle)
+        self.associated_file = None
+        self.is_active = False
 
     def delete_rectangle(self):
         #TODO: odstranit pripojeny soubor ze slozky pro cogy
@@ -35,16 +37,16 @@ def on_drag(event):
     if selected_rectangle:
         snapped_rect = snap_together(selected_rectangle, x, y)
         if snapped_rect:
-            #TODO: pridat prirazeny soubor do slozky pro cogy
+            selected_rectangle.is_active = True
             align_rectangles(selected_rectangle, snapped_rect, x, y)
         else:
-            #TODO: odstranit pripojeny soubor ze slozky pro cogy, pokud doslo k odpojeni
+            selected_rectangle.is_active = False
             canvas.move(selected_rectangle, x, y)
             move_delete_button(selected_rectangle, x, y)
     prev_x, prev_y = event.x, event.y
 
 def snap_together(rect, x, y):
-    threshold = 30  # Adjust this value to control the snap sensitivity
+    threshold = TRESHOLD  # Adjust this value to control the snap sensitivity
     bbox = canvas.bbox(rect)
 
     for other_rect in rectangles:
@@ -94,13 +96,18 @@ def align_rectangles(rect1, rect2, x, y):
     move_delete_button(rect1, x + x_offset, y + y_offset)
 
 def spawn_rectangle():
-    #TODO: priradit k rectanglu konkretni soubor
     x1, y1 = 50, 50
     x2, y2 = 150, 150
     new_rectangle = SnappableRectangle(canvas, x1, y1, x2, y2, "green")
     rectangles.append(new_rectangle)
     delete_buttons[new_rectangle.rect] = new_rectangle.delete_button
     canvas.create_window((x1, y1), window=new_rectangle.delete_button, anchor=tk.NW)
+
+    #TODO: priradit k rectanglu konkretni soubor i s ikonkou
+    try:
+        new_rectangle.associated_file = filedialog.askopenfilename()
+    except:
+        new_rectangle.delete_rectangle()
 
 def move_delete_button(rect, x, y):
     if rect in delete_buttons:
@@ -143,6 +150,7 @@ canvas.pack()
 
 core_rectangle = SnappableRectangle(canvas, 100, 100, 200, 200, "blue")
 
+global rectangles
 rectangles = [core_rectangle]
 delete_buttons = {}
 selected_rectangle = None

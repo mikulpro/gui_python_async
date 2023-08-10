@@ -2,6 +2,7 @@ import discord                                                          # Discor
 import requests                                                         # knihovna pro HTTP requesty
 from bs4 import BeautifulSoup                                           # knihovna pro parsovani HTML
 from discord.ext.commands import Bot, has_permissions                   # knihovna pro Discord boty
+from main import rectangles
 
 class BotCore:
     _instance = None
@@ -27,7 +28,7 @@ class BotCore:
         bot.run(self.token)
 
     async def setup_hook(self):
-        #TODO:
-        # for file in list s aktivnimi cogy
-        # await self.load_extension("cesta k souboru")
-        ...
+        global rectangles
+        for item in rectangles:
+            if item.is_active:
+                await self.load_extension(item.associated_file)
