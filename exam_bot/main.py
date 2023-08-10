@@ -1,12 +1,15 @@
 import tkinter as tk
 from tkinter import simpledialog
 from bot_core import BotCore
+import asyncio
+import threading
 
 TRESHOLD = 5
 CANVAS_WIDTH = 1700
 CANVAS_HEIGHT = 900
 
 class SnappableRectangle:
+    
     def __init__(self, canvas, x1, y1, x2, y2, fill):
         self.canvas = canvas
         self.rect = canvas.create_rectangle(x1, y1, x2, y2, fill=fill, tags="rectangle")
@@ -100,20 +103,35 @@ def move_delete_button(rect, x, y):
         bbox = canvas.bbox(rect)
         canvas.create_window((bbox[0] + x, bbox[1] + y), window=delete_button, anchor=tk.NW)
 
-def get_token():
+async def get_token():
     while True:
-        token = simpledialog.askstring("Input", "Enter your bot token:")
+        token = simpledialog.askstring("Token Dialog", "Enter your bot token:")
         if not token:
             root.withdraw()
             root.destroy()
             exit()
-        elif token.strip():
-            discord_bot = BotCore(token)
+        else:
+            return token
+
+async def run_bot_in_background(token):
+    discord_bot = BotCore(token)
+    await discord_bot.run()
+
+def start_bot_in_background(token):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run_bot_in_background(token))
+    loop.close()
+
+def start_bot_and_tkinter_concurrently():
+    token = asyncio.run(get_token())
+    threading.Thread(target=start_bot_in_background, args=(token,)).start()
+    root.mainloop()
+    
+###############################################################################################
 
 root = tk.Tk()
 root.title("Bot Cog Manager")
-
-get_token()
 
 canvas = tk.Canvas(root, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
 canvas.pack()
@@ -130,4 +148,4 @@ canvas.bind("<B1-Motion>", on_drag)
 spawn_button = tk.Button(root, text="Spawn Rectangle", command=spawn_rectangle)
 spawn_button.pack()
 
-root.mainloop()
+start_bot_and_tkinter_concurrently()
