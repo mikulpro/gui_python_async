@@ -1,40 +1,41 @@
 import tkinter as tk
 from tkinter import simpledialog, filedialog
-import asyncio
-import threading
+import asyncio                                        # pro GUI
+import threading                                      # pro oddeleni bota a GUI
+
+import discord                                        # Discord API
+import requests                                       # knihovna pro HTTP requesty
+from bs4 import BeautifulSoup                         # knihovna pro parsovani HTML
+from discord.ext.commands import Bot, has_permissions # knihovna pro Discord boty
 
 # konstanty pro snapovani bloku
 TRESHOLD = 5
 CANVAS_WIDTH = 1700
 CANVAS_HEIGHT = 900
 
-import discord                                                          # Discord API
-import requests                                                         # knihovna pro HTTP requesty
-from bs4 import BeautifulSoup                                           # knihovna pro parsovani HTML
-from discord.ext.commands import Bot, has_permissions                   # knihovna pro Discord boty
-
 class BotCore:
     _instance = None
 
-    def __new__(cls, in_token):
+    def __new__(cls): #, in_token):
         if cls._instance is None:
             cls._instance = super(BotCore, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, in_token):
-        self.token = in_token
+    def __init__(self): #, in_token):
+        #self.token = in_token
 
         intents = discord.Intents.all()                                         # Intents jsou "zapouzrena" nastaveni discord opravneni pro bota
         intents.typing = True                                                   # Urcuje, jestli bot muze psat zpravy
         intents.presences = True                                                # Urcuje, jestli muze bot videt, kdyz se nekdo pripoji nebo odpoji
 
-        bot = Bot(command_prefix='/', intents=intents)
+        self.bot = Bot(command_prefix='/', intents=intents)
 
-        @bot.event
+        @self.bot.event
         async def on_ready():
-            print(f'{bot.user} has connected to Discord!')
+            print(f'{self.bot.user} has connected to Discord!')
 
-        bot.run(self.token)
+    def run(self, token):
+        self.bot.run(token) #TODO: ERR: cannot be run in async thread
 
     async def setup_hook(self):
         global rectangles
@@ -159,8 +160,8 @@ async def get_token():
             return token
 
 async def run_bot_in_background(token):
-    discord_bot = BotCore(token)
-    await discord_bot.run()
+    discord_bot = BotCore() # vytvori bota
+    await discord_bot.run(token) # spusti bota (discord knihovna ma implementovane asyncio funkce)
 
 def start_bot_in_background(token):
     loop = asyncio.new_event_loop()
