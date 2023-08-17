@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import simpledialog, filedialog
 import asyncio
 import threading # tkinter neumi asynchronni vlakna, proto je nutne pouzit threading
+import queue # pro predavani dat mezi vlakny
 
 import discord                                        # Discord API
 import requests                                       # knihovna pro HTTP requesty
@@ -45,8 +46,9 @@ class BotCore:
             if item.is_active:
                 await self.load_extension(item.associated_file)
 
-def discord_bot_loop():
-    ...
+def discord_bot_loop(token_input):
+    bot_core = BotCore()
+    bot_core.run(token_input)
 
 # TKinter starts here
 
@@ -165,7 +167,7 @@ class Tk_extended(tk.Tk):
             bbox = self.canvas.bbox(rect)
             self.canvas.create_window((bbox[0] + x, bbox[1] + y), window=delete_button, anchor=tk.NW)
 
-    def get_token(self, root):
+    def get_token(self):
         while True:
             token = simpledialog.askstring("Token Dialog", "Enter your bot token:")
             if not token:
@@ -174,19 +176,19 @@ class Tk_extended(tk.Tk):
                 exit()
             else:
                 self.token = token
-                return token
 
 # Functions connecting TKinter and Discord Bot start here
 
-async def start_bot_and_tkinter_concurrently():
+def start_bot_and_tkinter_concurrently():
     tkinter_thread = threading.Thread(target=tkinter_start_mainloop)
-    other_thread = threading.Thread(target=discord_bot_loop)
+    bot_thread = threading.Thread(target=discord_bot_loop)
 
     tkinter_thread.start()
-    other_thread.start()
+    #TODO: predat bot_threadu token
+    bot_thread.start()
 
     tkinter_thread.join()
-    other_thread.join()
+    bot_thread.join()
 
 def tkinter_start_mainloop():
     root = Tk_extended()
@@ -204,6 +206,8 @@ def tkinter_start_mainloop():
     spawn_button = tk.Button(root, text="Spawn Rectangle", command=root.spawn_rectangle)
     spawn_button.pack()
 
-    global token
-    token = root.get_token(root)
+    root.get_token()
     root.mainloop()
+
+if __name__ == '__main__':
+    start_bot_and_tkinter_concurrently()
