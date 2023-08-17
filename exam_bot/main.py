@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import simpledialog, filedialog
 import asyncio
 import threading # tkinter neumi asynchronni vlakna, proto je nutne pouzit threading
-import queue # pro predavani dat mezi vlakny
+from queue import Queue # pro predavani dat mezi vlakny
+from queue import Empty as ERROR_QUEUE_EMPTY
 
 import discord                                        # Discord API
 import requests                                       # knihovna pro HTTP requesty
@@ -11,8 +12,8 @@ from discord.ext.commands import Bot, has_permissions # knihovna pro Discord bot
 
 # konstanty pro snapovani bloku
 TRESHOLD = 5
-CANVAS_WIDTH = 1700
-CANVAS_HEIGHT = 900
+CANVAS_WIDTH = 1000
+CANVAS_HEIGHT = 1000
 
 # Discord bot starts here
 
@@ -24,8 +25,8 @@ class BotCore:
             cls._instance = super(BotCore, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self): #, in_token):
-        #self.token = in_token
+    def __init__(self): 
+        self.token = global_receive_from_queue()
 
         intents = discord.Intents.all()                                         # Intents jsou "zapouzrena" nastaveni discord opravneni pro bota
         intents.typing = True                                                   # Urcuje, jestli bot muze psat zpravy
@@ -49,16 +50,18 @@ class BotCore:
 def discord_bot_loop(token_input):
     bot_core = BotCore()
     bot_core.run(token_input)
+    #TODO: bot se nespusti, nwm proc
 
 # TKinter starts here
 
 class SnappableRectangle:
     
-    def __init__(self, canvas, x1, y1, x2, y2, fill):
+    def __init__(self, canvas, x1, y1, x2, y2, fill, input_root):
+        self.root = input_root
         self.canvas = canvas
         self.rect = canvas.create_rectangle(x1, y1, x2, y2, fill=fill, tags="rectangle")
         self.connected_rectangles = []
-        self.delete_button = tk.Button(canvas, text="Delete", command=self.delete_rectangle)
+        self.delete_button = tk.Button(canvas, text="Delete", command=self.root.delete_rectangle)
         self.associated_file = None
         self.is_active = False
 
@@ -84,6 +87,7 @@ class Tk_extended(tk.Tk):
         selected_rectangle = self.canvas.find_closest(event.x, event.y)[0]
 
     def on_drag(self, event):
+        #TODO: nefunguje, nwm proc
         global prev_x, prev_y
         x, y = event.x - prev_x, event.y - prev_y
         if selected_rectangle:
@@ -150,7 +154,7 @@ class Tk_extended(tk.Tk):
     def spawn_rectangle(self):
         x1, y1 = 50, 50
         x2, y2 = 150, 150
-        new_rectangle = SnappableRectangle(self.canvas, x1, y1, x2, y2, "green")
+        new_rectangle = SnappableRectangle(self.canvas, x1, y1, x2, y2, "green", self)
         self.rectangles.append(new_rectangle)
         self.delete_buttons[new_rectangle.rect] = new_rectangle.delete_button
         self.canvas.create_window((x1, y1), window=new_rectangle.delete_button, anchor=tk.NW)
@@ -176,8 +180,36 @@ class Tk_extended(tk.Tk):
                 exit()
             else:
                 self.token = token
+                break
+    
+    def send_token(self):
+        queue = Queue_extended()
+        queue.put(self.token)
 
-# Functions connecting TKinter and Discord Bot start here
+# Queue functions start here
+
+class Queue_extended(Queue):
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Queue_extended, cls).__new__(cls)
+        return cls._instance
+    
+    def __init__(self, maxsize=9999):
+        super().__init__(maxsize)
+
+def global_receive_from_queue(): # takhle debilne to je napsany kvuli konkurenci
+                                 # normalnejsi by bylo neco jako q.get(timeout=999999)
+    q = Queue_extended()
+    while True:
+        try:
+            data_to_transfer = q.get(timeout=1)
+            return data_to_transfer
+        except ERROR_QUEUE_EMPTY:
+            pass # intentional pass
+
+# Non-queue functions connecting TKinter and Discord Bot start here
 
 def start_bot_and_tkinter_concurrently():
     tkinter_thread = threading.Thread(target=tkinter_start_mainloop)
@@ -197,7 +229,7 @@ def tkinter_start_mainloop():
     root.canvas = tk.Canvas(root, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
     root.canvas.pack()
 
-    core_rectangle = SnappableRectangle(root.canvas, 100, 100, 200, 200, "blue")
+    core_rectangle = SnappableRectangle(root.canvas, 100, 100, 200, 200, "blue", root)
     root.rectangles.append(core_rectangle)
 
     root.canvas.bind("<ButtonPress-1>", root.on_click)
@@ -207,6 +239,8 @@ def tkinter_start_mainloop():
     spawn_button.pack()
 
     root.get_token()
+    root.send_token()
+
     root.mainloop()
 
 if __name__ == '__main__':
