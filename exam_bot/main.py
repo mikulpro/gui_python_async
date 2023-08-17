@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import simpledialog, filedialog
-import asyncio                                        # pro GUI
-import threading                                      # pro oddeleni bota a GUI
+import asyncio
+import threading # tkinter neumi asynchronni vlakna, proto je nutne pouzit threading
 
 import discord                                        # Discord API
 import requests                                       # knihovna pro HTTP requesty
@@ -12,6 +12,8 @@ from discord.ext.commands import Bot, has_permissions # knihovna pro Discord bot
 TRESHOLD = 5
 CANVAS_WIDTH = 1700
 CANVAS_HEIGHT = 900
+
+# Discord bot starts here
 
 class BotCore:
     _instance = None
@@ -43,6 +45,11 @@ class BotCore:
             if item.is_active:
                 await self.load_extension(item.associated_file)
 
+def discord_bot_loop():
+    ...
+
+# TKinter starts here
+
 class SnappableRectangle:
     
     def __init__(self, canvas, x1, y1, x2, y2, fill):
@@ -53,6 +60,15 @@ class SnappableRectangle:
         self.associated_file = None
         self.is_active = False
 
+class Tk_extended(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.rectangles = []
+        self.delete_buttons = {}
+        self.selected_rectangle = None
+        self.token = None
+        self.canvas = None
+
     def delete_rectangle(self):
         #TODO: odstranit pripojeny soubor ze slozky pro cogy
         for rect in self.connected_rectangles:
@@ -60,139 +76,134 @@ class SnappableRectangle:
         self.canvas.delete(self.rect)
         self.delete_button.destroy()
 
-def on_click(event):
-    global prev_x, prev_y, selected_rectangle
-    prev_x, prev_y = event.x, event.y
-    selected_rectangle = canvas.find_closest(event.x, event.y)[0]
+    def on_click(self, event):
+        global prev_x, prev_y, selected_rectangle
+        prev_x, prev_y = event.x, event.y
+        selected_rectangle = self.canvas.find_closest(event.x, event.y)[0]
 
-def on_drag(event):
-    global prev_x, prev_y
-    x, y = event.x - prev_x, event.y - prev_y
-    if selected_rectangle:
-        snapped_rect = snap_together(selected_rectangle, x, y)
-        if snapped_rect:
-            selected_rectangle.is_active = True
-            align_rectangles(selected_rectangle, snapped_rect, x, y)
+    def on_drag(self, event):
+        global prev_x, prev_y
+        x, y = event.x - prev_x, event.y - prev_y
+        if selected_rectangle:
+            snapped_rect = self.snap_together(selected_rectangle, x, y)
+            if snapped_rect:
+                selected_rectangle.is_active = True
+                self.align_rectangles(selected_rectangle, snapped_rect, x, y)
+            else:
+                selected_rectangle.is_active = False
+                self.canvas.move(selected_rectangle, x, y)
+                self.move_delete_button(selected_rectangle, x, y)
+        prev_x, prev_y = event.x, event.y
+
+    def snap_together(self, rect, x, y):
+        threshold = TRESHOLD  # Adjust this value to control the snap sensitivity
+        bbox = self.canvas.bbox(rect)
+
+        for other_rect in rectangles:
+            if other_rect.rect != rect:
+                other_bbox = self.canvas.bbox(other_rect.rect)
+                if other_bbox:
+                    # Check distance between sides
+                    x_distance_left = abs(bbox[0] - other_bbox[2])
+                    x_distance_right = abs(bbox[2] - other_bbox[0])
+                    y_distance_top = abs(bbox[1] - other_bbox[3])
+                    y_distance_bottom = abs(bbox[3] - other_bbox[1])
+
+                    if x_distance_left < threshold and 0 < y_distance_bottom < (bbox[3] - bbox[1]) + (other_bbox[3] - other_bbox[1]):
+                        return other_rect.rect
+                    elif x_distance_right < threshold and 0 < y_distance_top < (bbox[3] - bbox[1]) + (other_bbox[3] - other_bbox[1]):
+                        return other_rect.rect
+                    elif y_distance_top < threshold and 0 < x_distance_right < (bbox[2] - bbox[0]) + (other_bbox[2] - other_bbox[0]):
+                        return other_rect.rect
+                    elif y_distance_bottom < threshold and 0 < x_distance_left < (bbox[2] - bbox[0]) + (other_bbox[2] - other_bbox[0]):
+                        return other_rect.rect
+
+        return None
+
+    def align_rectangles(self, rect1, rect2, x, y):
+        bbox1 = self.canvas.bbox(rect1)
+        bbox2 = self.canvas.bbox(rect2)
+
+        x_distance_left = abs(bbox1[0] - bbox2[2])
+        x_distance_right = abs(bbox1[2] - bbox2[0])
+        y_distance_top = abs(bbox1[1] - bbox2[3])
+        y_distance_bottom = abs(bbox1[3] - bbox2[1])
+
+        if x_distance_left < x_distance_right and x_distance_left < y_distance_top and x_distance_left < y_distance_bottom:
+            x_offset = bbox2[2] - bbox1[0]
+            y_offset = 0
+        elif x_distance_right < y_distance_top and x_distance_right < y_distance_bottom:
+            x_offset = bbox2[0] - bbox1[2]
+            y_offset = 0
+        elif y_distance_top < y_distance_bottom:
+            x_offset = 0
+            y_offset = bbox2[3] - bbox1[1]
         else:
-            selected_rectangle.is_active = False
-            canvas.move(selected_rectangle, x, y)
-            move_delete_button(selected_rectangle, x, y)
-    prev_x, prev_y = event.x, event.y
+            x_offset = 0
+            y_offset = bbox2[1] - bbox1[3]
 
-def snap_together(rect, x, y):
-    threshold = TRESHOLD  # Adjust this value to control the snap sensitivity
-    bbox = canvas.bbox(rect)
+        self.canvas.move(rect1, x + x_offset, y + y_offset)
+        self.move_delete_button(rect1, x + x_offset, y + y_offset)
 
-    for other_rect in rectangles:
-        if other_rect.rect != rect:
-            other_bbox = canvas.bbox(other_rect.rect)
-            if other_bbox:
-                # Check distance between sides
-                x_distance_left = abs(bbox[0] - other_bbox[2])
-                x_distance_right = abs(bbox[2] - other_bbox[0])
-                y_distance_top = abs(bbox[1] - other_bbox[3])
-                y_distance_bottom = abs(bbox[3] - other_bbox[1])
+    def spawn_rectangle(self):
+        x1, y1 = 50, 50
+        x2, y2 = 150, 150
+        new_rectangle = SnappableRectangle(self.canvas, x1, y1, x2, y2, "green")
+        self.rectangles.append(new_rectangle)
+        self.delete_buttons[new_rectangle.rect] = new_rectangle.delete_button
+        self.canvas.create_window((x1, y1), window=new_rectangle.delete_button, anchor=tk.NW)
 
-                if x_distance_left < threshold and 0 < y_distance_bottom < (bbox[3] - bbox[1]) + (other_bbox[3] - other_bbox[1]):
-                    return other_rect.rect
-                elif x_distance_right < threshold and 0 < y_distance_top < (bbox[3] - bbox[1]) + (other_bbox[3] - other_bbox[1]):
-                    return other_rect.rect
-                elif y_distance_top < threshold and 0 < x_distance_right < (bbox[2] - bbox[0]) + (other_bbox[2] - other_bbox[0]):
-                    return other_rect.rect
-                elif y_distance_bottom < threshold and 0 < x_distance_left < (bbox[2] - bbox[0]) + (other_bbox[2] - other_bbox[0]):
-                    return other_rect.rect
+        #TODO: priradit k rectanglu konkretni soubor i s ikonkou
+        try:
+            new_rectangle.associated_file = filedialog.askopenfilename()
+        except:
+            new_rectangle.delete_rectangle()
 
-    return None
+    def move_delete_button(self, delete_buttons, rect, x, y):
+        if rect in delete_buttons:
+            delete_button = delete_buttons[rect]
+            bbox = self.canvas.bbox(rect)
+            self.canvas.create_window((bbox[0] + x, bbox[1] + y), window=delete_button, anchor=tk.NW)
 
-def align_rectangles(rect1, rect2, x, y):
-    bbox1 = canvas.bbox(rect1)
-    bbox2 = canvas.bbox(rect2)
+    def get_token(self, root):
+        while True:
+            token = simpledialog.askstring("Token Dialog", "Enter your bot token:")
+            if not token:
+                self.withdraw()
+                self.destroy()
+                exit()
+            else:
+                self.token = token
+                return token
 
-    x_distance_left = abs(bbox1[0] - bbox2[2])
-    x_distance_right = abs(bbox1[2] - bbox2[0])
-    y_distance_top = abs(bbox1[1] - bbox2[3])
-    y_distance_bottom = abs(bbox1[3] - bbox2[1])
+# Functions connecting TKinter and Discord Bot start here
 
-    if x_distance_left < x_distance_right and x_distance_left < y_distance_top and x_distance_left < y_distance_bottom:
-        x_offset = bbox2[2] - bbox1[0]
-        y_offset = 0
-    elif x_distance_right < y_distance_top and x_distance_right < y_distance_bottom:
-        x_offset = bbox2[0] - bbox1[2]
-        y_offset = 0
-    elif y_distance_top < y_distance_bottom:
-        x_offset = 0
-        y_offset = bbox2[3] - bbox1[1]
-    else:
-        x_offset = 0
-        y_offset = bbox2[1] - bbox1[3]
+async def start_bot_and_tkinter_concurrently():
+    tkinter_thread = threading.Thread(target=tkinter_start_mainloop)
+    other_thread = threading.Thread(target=discord_bot_loop)
 
-    canvas.move(rect1, x + x_offset, y + y_offset)
-    move_delete_button(rect1, x + x_offset, y + y_offset)
+    tkinter_thread.start()
+    other_thread.start()
 
-def spawn_rectangle():
-    x1, y1 = 50, 50
-    x2, y2 = 150, 150
-    new_rectangle = SnappableRectangle(canvas, x1, y1, x2, y2, "green")
-    rectangles.append(new_rectangle)
-    delete_buttons[new_rectangle.rect] = new_rectangle.delete_button
-    canvas.create_window((x1, y1), window=new_rectangle.delete_button, anchor=tk.NW)
+    tkinter_thread.join()
+    other_thread.join()
 
-    #TODO: priradit k rectanglu konkretni soubor i s ikonkou
-    try:
-        new_rectangle.associated_file = filedialog.askopenfilename()
-    except:
-        new_rectangle.delete_rectangle()
+def tkinter_start_mainloop():
+    root = Tk_extended()
+    root.title("Cog Control")
 
-def move_delete_button(rect, x, y):
-    if rect in delete_buttons:
-        delete_button = delete_buttons[rect]
-        bbox = canvas.bbox(rect)
-        canvas.create_window((bbox[0] + x, bbox[1] + y), window=delete_button, anchor=tk.NW)
+    root.canvas = tk.Canvas(root, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+    root.canvas.pack()
 
-async def get_token():
-    while True:
-        token = simpledialog.askstring("Token Dialog", "Enter your bot token:")
-        if not token:
-            root.withdraw()
-            root.destroy()
-            exit()
-        else:
-            return token
+    core_rectangle = SnappableRectangle(root.canvas, 100, 100, 200, 200, "blue")
+    root.rectangles.append(core_rectangle)
 
-async def run_bot_in_background(token):
-    discord_bot = BotCore() # vytvori bota
-    await discord_bot.run(token) # spusti bota (discord knihovna ma implementovane asyncio funkce)
+    root.canvas.bind("<ButtonPress-1>", root.on_click)
+    root.canvas.bind("<B1-Motion>", root.on_drag)
 
-def start_bot_in_background(token):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(run_bot_in_background(token))
-    loop.close()
+    spawn_button = tk.Button(root, text="Spawn Rectangle", command=root.spawn_rectangle)
+    spawn_button.pack()
 
-def start_bot_and_tkinter_concurrently():
-    token = asyncio.run(get_token())
-    threading.Thread(target=start_bot_in_background, args=(token,)).start()
+    global token
+    token = root.get_token(root)
     root.mainloop()
-    
-###############################################################################################
-
-root = tk.Tk()
-root.title("Bot Cog Manager")
-
-canvas = tk.Canvas(root, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-canvas.pack()
-
-core_rectangle = SnappableRectangle(canvas, 100, 100, 200, 200, "blue")
-
-global rectangles
-rectangles = [core_rectangle]
-delete_buttons = {}
-selected_rectangle = None
-
-canvas.bind("<ButtonPress-1>", on_click)
-canvas.bind("<B1-Motion>", on_drag)
-
-spawn_button = tk.Button(root, text="Spawn Rectangle", command=spawn_rectangle)
-spawn_button.pack()
-
-start_bot_and_tkinter_concurrently()
