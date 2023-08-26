@@ -44,8 +44,12 @@ class BotCore:
     async def setup_hook(self):
         global rectangles
         for item in rectangles:
+            try:
+                self.bot.unload_extension(item.associated_file)
+            except:
+                pass # intentional pass
             if item.is_active:
-                await self.load_extension(item.associated_file)
+                await self.bot.load_extension(item.associated_file)
 
 def discord_bot_loop(token_input):
     bot_core = BotCore()
@@ -90,8 +94,8 @@ class Tk_extended(tk.Tk):
         #TODO: nefunguje, nwm proc
         global prev_x, prev_y
         x, y = event.x - prev_x, event.y - prev_y
-        if selected_rectangle:
-            snapped_rect = self.snap_together(selected_rectangle, x, y)
+        if self.selected_rectangle:
+            snapped_rect = self.snap_together(self.selected_rectangle, x, y)
             if snapped_rect:
                 selected_rectangle.is_active = True
                 self.align_rectangles(selected_rectangle, snapped_rect, x, y)
