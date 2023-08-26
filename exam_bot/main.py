@@ -224,8 +224,8 @@ def start_bot_and_tkinter_concurrently():
     # zde probehne predani tokenu pomoci fronty
     bot_thread.start()
 
-    tkinter_thread.join()
-    bot_thread.join()
+    # tkinter_thread.join()
+    # bot_thread.join()
 
 def tkinter_start_mainloop():
     root = Tk_extended()
