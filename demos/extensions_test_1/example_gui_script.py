@@ -55,7 +55,7 @@ def runni_bota():
     return
     
 def bot_run():
-    token = 'MTEzODAzNTA5ODE3Njk3ODk4Ng.GyYzC7.UkVwWbeqCRSmFg9nyXefRF7JrE0aNjVy9-LrqY'
+    token = ''
     bot.run(token)
 
 if __name__ == "__main__":
