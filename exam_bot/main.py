@@ -1,12 +1,12 @@
 import tkinter as tk
 from tkinter import simpledialog, filedialog
-import asyncio
+from asyncio import *
 import threading # tkinter neumi asynchronni vlakna, proto je nutne pouzit threading
 from queue import Queue # pro predavani dat mezi vlakny
 from queue import Empty as ERROR_QUEUE_EMPTY
 
 import discord                                        # Discord API
-import requests                                       # knihovna pro HTTP requesty
+# -- import requests                                       # knihovna pro HTTP requesty
 from bs4 import BeautifulSoup                         # knihovna pro parsovani HTML
 from discord.ext.commands import Bot, has_permissions # knihovna pro Discord boty
 
@@ -51,10 +51,11 @@ class BotCore:
             if item.is_active:
                 await self.bot.load_extension(item.associated_file)
 
-def discord_bot_loop(token_input):
+def discord_bot_loop():
+    global predavaci_fronta
+    token = predavaci_fronta.get()
     bot_core = BotCore()
-    bot_core.run(token_input)
-    #TODO: bot se nespusti, nwm proc
+    bot_core.run(token)
 
 # TKinter starts here
 
@@ -187,8 +188,8 @@ class Tk_extended(tk.Tk):
                 break
     
     def send_token(self):
-        queue = Queue_extended()
-        queue.put(self.token)
+        global predavaci_fronta
+        predavaci_fronta.put(self.token)
 
 # Queue functions start here
 
@@ -220,7 +221,7 @@ def start_bot_and_tkinter_concurrently():
     bot_thread = threading.Thread(target=discord_bot_loop)
 
     tkinter_thread.start()
-    #TODO: predat bot_threadu token
+    # zde probehne predani tokenu pomoci fronty
     bot_thread.start()
 
     tkinter_thread.join()
@@ -248,4 +249,6 @@ def tkinter_start_mainloop():
     root.mainloop()
 
 if __name__ == '__main__':
+    global predavaci_fronta
+    predavaci_fronta = Queue_extended()
     start_bot_and_tkinter_concurrently()
