@@ -239,6 +239,8 @@ class Tk_extended(tk.Tk):
         global predavaci_fronta
         predavaci_fronta.put(self.token)
 
+# Nebudeme pouzivat frontu
+'''
 # Queue functions start here
 
 class Queue_extended(Queue):
@@ -261,19 +263,15 @@ def global_receive_from_queue(): # takhle debilne to je napsany kvuli konkurenci
             return data_to_transfer
         except ERROR_QUEUE_EMPTY:
             pass # intentional pass
+'''
 
 # Non-queue functions connecting TKinter and Discord Bot start here
 
 def start_bot_and_tkinter_concurrently():
-    tkinter_thread = threading.Thread(target=tkinter_start_mainloop)
+    tkinter_start_mainloop()
     bot_thread = threading.Thread(target=discord_bot_loop)
-
-    tkinter_thread.start()
-    # zde probehne predani tokenu pomoci fronty
     bot_thread.start()
-
-    # tkinter_thread.join()
-    # bot_thread.join()
+    bot_thread.join()
 
 def tkinter_start_mainloop():
     root = Tk_extended()
@@ -296,9 +294,10 @@ def tkinter_start_mainloop():
 
     root.mainloop()
 
-
-
 if __name__ == "__main__":
+    start_bot_and_tkinter_concurrently()
+
+    '''
     global loaded_extensions 
     loaded_extensions = []
 
@@ -318,6 +317,7 @@ if __name__ == "__main__":
 
     # Start the main event loop
     root.mainloop()
+    '''
 
 # TODO: Gui
 #  - graficky interface reprezentujici jednotlive cogy
