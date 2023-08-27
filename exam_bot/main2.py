@@ -18,10 +18,13 @@ class MyBot(commands.Bot):
     # the method to override in order to run whatever you need before your bot starts
     async def setup_hook(self):     #for extencion of initial extencions
 
+
+        await self.load_extension("loadcog")
+        """
         for extension in EXTENSIONS:
             await self.load_extension(extension)
 
-        """
+        
         await self.load_extension("sample_cogs.remindercog")
         await self.load_extension("sample_cogs.basiccog")
         await self.load_extension("sample_cogs.openaicog")
@@ -30,5 +33,5 @@ class MyBot(commands.Bot):
         await self.load_extension("sample_cogs.ytscraper")
     
         """
-    
-MyBot().run('MTA5ODU0NTA3NjY5Njc5NzI0Ng.GH3xZO.nO4eSzcFsYphaMKQTfV0YRgzyfoccIdu1U6ddU')
+
+MyBot().run('MTA5ODU0NTA3NjY5Njc5NzI0Ng.GuMBe0.diysHo6otoNKCi7EbeoRkXYUj5lK_Rqn4fqfLg')
