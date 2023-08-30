@@ -4,11 +4,11 @@ from random import choice, uniform, randint
 # konstanty pro snapovani bloku
 CANVAS_WIDTH = 900
 CANVAS_HEIGHT = 900
-SNAP_TRESHOLD = 5
+SNAP_TRESHOLD = 6
 RECTANGLE_SIDE_SIZE = 100
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
-FONT_SIZE = 28
+FONT_SIZE = 32
 FONT_FAMILY =  "Helvetica"
 # FONT_FAMILY jsou "Arial", "Calibri", "Comic Sans MS", "Courier New", "Georgia", "Helvetica", "Impact", "Lucida Console", "Lucida Sans Unicode", "Palatino Linotype", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"
 
@@ -28,11 +28,11 @@ class _SnappableRectangle:
         self.window_id = None
         
         if show_delete:
-            self.delete_button = Button(master=self.canvas, text="Delete", command=lambda: self.root.delete_rectangle(self))
+            self.delete_button = Button(master=self.canvas, text="COG", command=lambda: self.root.delete_rectangle(self))
             self.window_id = self.canvas.create_window((x1 + (x2-x1)/2, y1 + (y2-y1)/2), window=self.delete_button, anchor=CENTER)
 
         if not show_delete:
-            self.delete_button = Button(master=self.canvas, text="", height=0, width=0, state='disabled', command=lambda: self.root.delete_rectangle(self))
+            self.delete_button = Button(master=self.canvas, text="CORE", height=0, width=0, state='disabled', command=lambda: self.root.delete_rectangle(self))
             self.window_id = self.canvas.create_window((x1 + (x2-x1)/2, y1 + (y2-y1)/2), window=self.delete_button, anchor=CENTER)
 
     def delete(self):
@@ -87,6 +87,19 @@ class Tk_extended(Tk):
                 self.canvas.move(self.selected_rectangle.rect, dx, dy)
                 self.move_delete_button(self.selected_rectangle, dx, dy)
         self.prev_x, self.prev_y = event.x, event.y
+
+        if snapped_rect_obj:
+            if self.can_unsnap(self.selected_rectangle, snapped_rect_obj, dx, dy):
+                self.selected_rectangle.is_active = False
+                self.canvas.move(self.selected_rectangle.rect, dx, dy)
+                self.move_delete_button(self.selected_rectangle, dx, dy)
+            else:
+                self.selected_rectangle.is_active = True
+                self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
+        else:
+            self.selected_rectangle.is_active = False
+            self.canvas.move(self.selected_rectangle.rect, dx, dy)
+            self.move_delete_button(self.selected_rectangle, dx, dy)
 
     def snap_together(self, rect, x, y):
         bbox = self.canvas.bbox(rect.rect)
@@ -175,6 +188,19 @@ class Tk_extended(Tk):
             if rect.rect == canvas_id:
                 return rect
         return None
+    
+    def can_unsnap(self, rect1, rect2, x, y):
+        bbox1 = self.canvas.bbox(rect1.rect)
+        bbox2 = self.canvas.bbox(rect2.rect)
+        if not bbox1 or not bbox2:
+            return False
+
+        new_bbox1 = (bbox1[0] + x, bbox1[1] + y, bbox1[2] + x, bbox1[3] + y)
+
+        if new_bbox1[2] < bbox2[0] or new_bbox1[0] > bbox2[2] or new_bbox1[3] < bbox2[1] or new_bbox1[1] > bbox2[3]:
+            return True
+
+        return False
     
 ##############################################################################################################
 
