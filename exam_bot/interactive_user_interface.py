@@ -1,6 +1,6 @@
 from tkinter import filedialog, Canvas, Button, Tk, N, NW, W, SW, S, SE, E, NE, CENTER
 from core import runni_bota, vypni_bota
-import shutil, os, csv, random
+import shutil, os, csv, random, threading
 
 # konstanty pro snapovani bloku
 CANVAS_WIDTH = 1400
@@ -81,7 +81,6 @@ class Tk_extended(Tk):
     def mainloop_extended(self):
         runni_bota()
         self.tkinter_extended_setup_function()
-        self.cog_loader()
         super().mainloop()
         vypni_bota()
 
@@ -262,22 +261,8 @@ class Tk_extended(Tk):
 
         return False
     
-    def cog_loader(self): #, input=None):
-        try:
-            if input is None:
-                for subcog in self.core.snapped_to:
-                    self.activate_cog(subcog)
-                    for sub_subcog in subcog.snapped_to:
-                        #self.cog_loader(sub_subcog)
-                        self.activate_cog(sub_subcog)
-            else:
-                for subcog in input.snapped_to:
-                    self.activate_cog(subcog)
-        except:
-            pass # pro preteceni rekurze
-
-        root = self
-        root.after(5000, lambda root: root.cog_loader(root))       
+    def start_cog_loader(cog_loader_thread):
+        cog_loader_thread.start()      
 
     @staticmethod
     def get_random_color():
