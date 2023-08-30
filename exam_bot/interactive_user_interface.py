@@ -4,12 +4,12 @@ from random import choice, uniform, randint
 # konstanty pro snapovani bloku
 CANVAS_WIDTH = 900
 CANVAS_HEIGHT = 900
-SNAP_TRESHOLD = 6
+SNAP_TRESHOLD = 20
 RECTANGLE_SIDE_SIZE = 100
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
 FONT_SIZE = 32
-FONT_FAMILY =  "Helvetica"
+FONT_FAMILY = "Helvetica"
 # FONT_FAMILY jsou "Arial", "Calibri", "Comic Sans MS", "Courier New", "Georgia", "Helvetica", "Impact", "Lucida Console", "Lucida Sans Unicode", "Palatino Linotype", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"
 
 class _SnappableRectangle:
@@ -25,6 +25,7 @@ class _SnappableRectangle:
         self.prev_y = 0
         self.rect = canvas.create_rectangle(x1, y1, x2, y2, fill=fill, tags="rectangle")
         self.root = input_root
+        self.snapped_to = []
         self.window_id = None
         
         if show_delete:
@@ -61,10 +62,10 @@ class Tk_extended(Tk):
         self.rect_to_button_id_dict = {}
         self.selected_rectangle = None
         self.token = None
+        self.core = None
 
     def delete_rectangle(self, rectangle_obj):
-        rectangle_obj.delete()    
-        #TODO: odstranit pripojeny soubor ze slozky pro cogy
+        rectangle_obj.delete()
 
     def on_click(self, event):
         self.prev_x = event.x
@@ -75,19 +76,27 @@ class Tk_extended(Tk):
                 self.selected_rectangle = rect_obj
                 break
 
-    def on_drag(self, event):
+    def old_on_drag(self, event):
         dx, dy = event.x - self.prev_x, event.y - self.prev_y
+        
         if self.selected_rectangle:
             snapped_rect_obj = self.snap_together(self.selected_rectangle, dx, dy)
             if snapped_rect_obj:
                 self.selected_rectangle.is_active = True
                 self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
+
+                snapped_rect_objs = self.snap_together(self.selected_rectangle)
+                for snapped_rect_obj in snapped_rect_objs:
+                    self.align_rectangles(self.selected_rectangle, snapped_rect_obj)
+
             else:
                 self.selected_rectangle.is_active = False
                 self.canvas.move(self.selected_rectangle.rect, dx, dy)
                 self.move_delete_button(self.selected_rectangle, dx, dy)
-        self.prev_x, self.prev_y = event.x, event.y
 
+            return
+        self.prev_x, self.prev_y = event.x, event.y   
+        
         if snapped_rect_obj:
             if self.can_unsnap(self.selected_rectangle, snapped_rect_obj, dx, dy):
                 self.selected_rectangle.is_active = False
@@ -96,13 +105,60 @@ class Tk_extended(Tk):
             else:
                 self.selected_rectangle.is_active = True
                 self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
-        else:
-            self.selected_rectangle.is_active = False
+
+                snapped_rect_objs = self.snap_together(self.selected_rectangle)
+                for snapped_rect_obj in snapped_rect_objs:
+                    self.align_rectangles(self.selected_rectangle, snapped_rect_obj)
+            return
+        
+        snapped_rect_objs = self.snap_together(self.selected_rectangle, dx, dy)
+        if snapped_rect_objs:
+            for snapped_rect_obj in snapped_rect_objs:
+                self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
+            return
+
+        self.selected_rectangle.is_active = False
+        self.canvas.move(self.selected_rectangle.rect, dx, dy)
+        self.move_delete_button(self.selected_rectangle, dx, dy)
+
+    def on_drag(self, event):
+        dx, dy = event.x - self.prev_x, event.y - self.prev_y
+        
+        if not self.selected_rectangle:
+            self.prev_x, self.prev_y = event.x, event.y
+            return
+
+        # Check for snapping
+        snapped_rect_objs = self.snap_together(self.selected_rectangle, event.x, event.y)
+        
+        # If there are rectangles to snap with
+        if snapped_rect_objs:
+            for snapped_rect_obj in snapped_rect_objs:
+                # If not already snapped
+                if not self.selected_rectangle.is_active:
+                    # Snap together
+                    self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
+                    self.selected_rectangle.is_active = True
+                else:
+                    # Check for unsnapping condition
+                    if self.can_unsnap(self.selected_rectangle, snapped_rect_obj, dx, dy):
+                        self.canvas.move(self.selected_rectangle.rect, dx, dy)
+                        self.move_delete_button(self.selected_rectangle, dx, dy)
+                        self.selected_rectangle.is_active = False
+                    else:
+                        # If still needs to be snapped
+                        self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
+                        self.selected_rectangle.is_active = True
+        else: # If no snapping rectangles
             self.canvas.move(self.selected_rectangle.rect, dx, dy)
             self.move_delete_button(self.selected_rectangle, dx, dy)
+            self.selected_rectangle.is_active = False
+
+        self.prev_x, self.prev_y = event.x, event.y
 
     def snap_together(self, rect, x, y):
         bbox = self.canvas.bbox(rect.rect)
+        snapped_rects = []
 
         for other_rect in self.rectangles:
             if other_rect.rect != rect.rect:
@@ -114,17 +170,26 @@ class Tk_extended(Tk):
                     y_distance_top = abs(bbox[1] - other_bbox[3])
                     y_distance_bottom = abs(bbox[3] - other_bbox[1])
 
-                    if x_distance_left < SNAP_TRESHOLD and 0 < y_distance_bottom < (bbox[3] - bbox[1]) + (other_bbox[3] - other_bbox[1]):
-                        return other_rect
-                    elif x_distance_right < SNAP_TRESHOLD and 0 < y_distance_top < (bbox[3] - bbox[1]) + (other_bbox[3] - other_bbox[1]):
-                        return other_rect
-                    elif y_distance_top < SNAP_TRESHOLD and 0 < x_distance_right < (bbox[2] - bbox[0]) + (other_bbox[2] - other_bbox[0]):
-                        return other_rect
-                    elif y_distance_bottom < SNAP_TRESHOLD and 0 < x_distance_left < (bbox[2] - bbox[0]) + (other_bbox[2] - other_bbox[0]):
-                        return other_rect
+                    if (x_distance_left < SNAP_TRESHOLD and 0 < y_distance_bottom < (bbox[3] - bbox[1]) + (other_bbox[3] - other_bbox[1]) or
+                    x_distance_right < SNAP_TRESHOLD and 0 < y_distance_top < (bbox[3] - bbox[1]) + (other_bbox[3] - other_bbox[1]) or
+                    y_distance_top < SNAP_TRESHOLD and 0 < x_distance_right < (bbox[2] - bbox[0]) + (other_bbox[2] - other_bbox[0]) or
+                    y_distance_bottom < SNAP_TRESHOLD and 0 < x_distance_left < (bbox[2] - bbox[0]) + (other_bbox[2] - other_bbox[0])):
+                        rect.snapped_to.append(other_rect)
+                        #other_rect.snapped_to.add(rect)
+                        for item in rect.snapped_to:
+                            snapped_rects.append(item)
+                        return snapped_rects
         return None
 
     def align_rectangles(self, rect1, rect2, x, y):      
+        if rect2 in rect1.snapped_to or rect1 in rect2.snapped_to:
+            return
+        
+        if rect2 not in rect1.snapped_to:
+            rect2.snapped_to.append(rect1)
+        if rect1 not in rect2.snapped_to:
+            rect1.snapped_to.append(rect2)        
+        
         bbox1 = self.canvas.bbox(rect1.rect)
         bbox2 = self.canvas.bbox(rect2.rect)
 
@@ -152,8 +217,22 @@ class Tk_extended(Tk):
         self.canvas.move(rect1.rect, x + x_offset, y + y_offset)
         self.move_delete_button(rect1, x + x_offset, y + y_offset)
 
-        self.canvas.move(rect2.rect, x, y)
-        self.move_delete_button(rect2, x, y)
+        # self.canvas.move(rect2.rect, x, y)
+        # self.move_delete_button(rect2, x, y)
+
+        self.canvas.move(rect2.rect, x_offset, y_offset)
+        self.move_delete_button(rect2, x_offset, y_offset)
+
+        rect1.snapped_to.append(rect2)
+        rect2.snapped_to.append(rect1)
+
+        for other_rect in rect1.snapped_to:
+            if other_rect != rect2:
+                self.align_rectangles(rect2, other_rect)
+
+        for other_rect in rect2.snapped_to:
+            if other_rect != rect1:
+                self.align_rectangles(rect1, other_rect)
 
     def spawn_rectangle(self, is_core=False):
         x1 = randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
@@ -161,10 +240,11 @@ class Tk_extended(Tk):
 
         if is_core:
             x2, y2 = x1+CORE_SIDE_SIZE, y1+CORE_SIDE_SIZE
-            new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill="red", input_root=self, show_delete=False)
+            new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill="black", input_root=self, show_delete=False)
         else:
             x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
-            new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill="grey", input_root=self, show_delete=True)
+            random_color = self.get_random_color()
+            new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=random_color, input_root=self, show_delete=True)
         self.delete_buttons[new_rectangle.rect] = new_rectangle.window_id
         self.rect_to_button_id_dict[new_rectangle] = new_rectangle.window_id
         self.rectangles.append(new_rectangle)
@@ -198,26 +278,34 @@ class Tk_extended(Tk):
         new_bbox1 = (bbox1[0] + x, bbox1[1] + y, bbox1[2] + x, bbox1[3] + y)
 
         if new_bbox1[2] < bbox2[0] or new_bbox1[0] > bbox2[2] or new_bbox1[3] < bbox2[1] or new_bbox1[1] > bbox2[3]:
+            if rect2 in rect1.snapped_to:
+                rect1.snapped_to.remove(rect2)
+            if rect1 in rect2.snapped_to:
+                rect2.snapped_to.remove(rect1)
             return True
 
         return False
     
-##############################################################################################################
+    @staticmethod
+    def get_random_color():
+        return "#{:06x}".format(randint(0, 0xFFFFFF))
 
-def tkinter_extended_start():
-    TKe = Tk_extended()
-    TKe.title("Cog Control")
-    TKe.canvas = Canvas(TKe, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-    TKe.canvas.pack()
+    @staticmethod
+    def rgb_to_hex(r, g, b):
+        return "#{:02x}{:02x}{:02x}".format(r, g, b)
+    
+    @staticmethod
+    def tkinter_extended_setup_function():
+        TKe = Tk_extended()
+        TKe.title("Cog Control")
+        TKe.canvas = Canvas(TKe, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+        TKe.canvas.pack()
 
-    TKe.spawn_rectangle(is_core=True)
-    TKe.canvas.bind("<ButtonPress-1>", TKe.on_click)
-    TKe.canvas.bind("<B1-Motion>", TKe.on_drag)
+        TKe.spawn_rectangle(is_core=True)
+        TKe.canvas.bind("<ButtonPress-1>", TKe.on_click)
+        TKe.canvas.bind("<B1-Motion>", TKe.on_drag)
 
-    spawn_button = Button(TKe, text="Spawn Rectangle", command=TKe.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE))
-    spawn_button.pack()
+        spawn_button = Button(TKe, text="Spawn Rectangle", command=TKe.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE))
+        spawn_button.pack()
 
-    TKe.mainloop()
-
-if __name__ == "__main__":
-    tkinter_extended_start()
+        return TKe
