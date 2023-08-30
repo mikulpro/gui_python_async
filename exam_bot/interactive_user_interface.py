@@ -69,7 +69,7 @@ class _SnappableRectangle:
 
 class Tk_extended(Tk):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)  # Assuming you're extending a parent class. If not, remove this line.
+        super().__init__(*args, **kwargs)
         self.canvas = None
         self.delete_buttons = {}
         self.rectangles = []
@@ -78,11 +78,11 @@ class Tk_extended(Tk):
         self.token = None
         self.core = None
 
-    def mainloop_extended(self, n=0):
+    def mainloop_extended(self):
         runni_bota()
         self.tkinter_extended_setup_function()
-        self.after(5000, self.cog_loader)
-        super().mainloop(n)
+        self.cog_loader()
+        super().mainloop()
         vypni_bota()
 
     def delete_rectangle(self, rectangle_obj):
@@ -262,19 +262,22 @@ class Tk_extended(Tk):
 
         return False
     
-    def cog_loader(self, input=None):
+    def cog_loader(self): #, input=None):
         try:
             if input is None:
                 for subcog in self.core.snapped_to:
                     self.activate_cog(subcog)
                     for sub_subcog in subcog.snapped_to:
-                        self.cog_loader(sub_subcog)
+                        #self.cog_loader(sub_subcog)
+                        self.activate_cog(sub_subcog)
             else:
                 for subcog in input.snapped_to:
                     self.activate_cog(subcog)
         except:
-            pass # pro preteceni rekurze 
-        self.after(5000, self.cog_loader)       
+            pass # pro preteceni rekurze
+
+        root = self
+        root.after(5000, lambda root: root.cog_loader(root))       
 
     @staticmethod
     def get_random_color():
