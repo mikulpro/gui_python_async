@@ -18,6 +18,8 @@ class SnappableRectangle:
         self.delete_button = Button(canvas, text="Delete", command=self.root.delete_rectangle)
         self.associated_file = None
         self.is_active = False
+        self.prev_x = 0
+        self.prev_y = 0
 
 class Tk_extended(Tk):
     def __init__(self):
@@ -28,45 +30,37 @@ class Tk_extended(Tk):
         self.token = None
         self.canvas = None
 
-    def delete_rectangle(self):
-
+    def delete_rectangle(self, rectangle_obj):
+        rectangle_obj.delete()    
         #TODO: odstranit pripojeny soubor ze slozky pro cogy
 
-        for rect in self.connected_rectangles:
-            rect.connected_rectangles.remove(self)
-        self.canvas.delete(self.rect)
-        self.delete_button.destroy()
-
     def on_click(self, event):
-        global prev_x, prev_y, selected_rectangle
-
-        prev_x, prev_y = event.x, event.y
-        selected_rectangle = self.canvas.find_closest(event.x, event.y)[0]
+        self.prev_x = event.x
+        self.prev_y = event.y
+        rect_id = self.canvas.find_closest(event.x, event.y)[0]
+        for rect_obj in self.rectangles:
+            if rect_obj.rect == rect_id:
+                self.selected_rectangle = rect_obj
+                break
 
     def on_drag(self, event):
-        global prev_x, prev_y
-
-        x, y = event.x - prev_x, event.y - prev_y
+        dx, dy = event.x - self.prev_x, event.y - self.prev_y
         if self.selected_rectangle:
-            snapped_rect = self.snap_together(self.selected_rectangle, x, y)
-            if snapped_rect:
-                selected_rectangle.is_active = True
-                self.align_rectangles(selected_rectangle, snapped_rect, x, y)
+            snapped_rect_obj = self.snap_together(self.selected_rectangle, dx, dy)
+            if snapped_rect_obj:
+                self.selected_rectangle.is_active = True
+                self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
             else:
-                selected_rectangle.is_active = False
-                self.canvas.move(selected_rectangle, x, y)
-                self.move_delete_button(selected_rectangle, x, y)
-        prev_x, prev_y = event.x, event.y
-
-        #TODO: nefunguje, nwm proc
+                self.selected_rectangle.is_active = False
+                self.canvas.move(self.selected_rectangle.rect, dx, dy)
+                self.move_delete_button(self.selected_rectangle, dx, dy)
+        self.prev_x, self.prev_y = event.x, event.y
 
     def snap_together(self, rect, x, y):
-        global rectangles
+        bbox = self.canvas.bbox(rect.rect)
 
-        bbox = self.canvas.bbox(rect)
-
-        for other_rect in rectangles:
-            if other_rect.rect != rect:
+        for other_rect in self.rectangles:
+            if other_rect.rect != rect.rect:
                 other_bbox = self.canvas.bbox(other_rect.rect)
                 if other_bbox:
                     
@@ -118,24 +112,30 @@ class Tk_extended(Tk):
 
         new_rectangle = SnappableRectangle(self.canvas, x1, y1, x2, y2, "green", self)
         self.delete_buttons[new_rectangle.rect] = new_rectangle.delete_button
-        
         self.rectangles.append(new_rectangle)
         self.canvas.create_window((x1, y1), window=new_rectangle.delete_button, anchor=CENTER)
 
         #TODO: priradit k rectanglu konkretni soubor i s ikonkou
-        '''
-        try:
-            new_rectangle.associated_file = filedialog.askopenfilename()
-        except:
-            new_rectangle.delete_rectangle()
-        '''
 
-    def move_delete_button(self, delete_buttons, rect, x, y):
-        if rect in delete_buttons:
-            delete_button = delete_buttons[rect]
-            bbox = self.canvas.bbox(rect)
-            self.canvas.create_window((bbox[0] + x, bbox[1] + y), window=delete_button, anchor=NE)
+    def move_delete_button(self, rectangle_obj, dx, dy):
+        print(rectangle_obj.rect)
+        print(self.delete_buttons.keys())
+        if rectangle_obj.rect in self.delete_buttons:
+            bbox = self.canvas.bbox(rectangle_obj.rect)
+            self.canvas.coords(self.delete_buttons[rectangle_obj.rect], (bbox[0] + dx, bbox[1] + dy))
+
+    def get_rectangle_from_id(self, canvas_id):
+        for rect in self.rectangles:
+            if rect.rect == canvas_id:
+                return rect
+        return None
+
+    def move_delete_button(self, rectangle_obj, dx, dy):
+        bbox = self.canvas.bbox(rectangle_obj.rect)
+        self.canvas.coords(self.delete_buttons[rectangle_obj.rect], (bbox[0] + dx, bbox[1] + dy))    
     
+##############################################################################################################
+
 def tkinter_extended_start():
     root = Tk_extended()
     root.title("Cog Control")
