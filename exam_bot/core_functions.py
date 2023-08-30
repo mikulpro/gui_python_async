@@ -82,6 +82,3 @@ def _bot_run():
         bot.run(token)
     else:
         raise Exception("Token not found.")
-
-def storage_to_cogs_transfer():
-    ...
