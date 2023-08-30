@@ -1,9 +1,10 @@
-from tkinter import simpledialog, filedialog, Canvas, Button, Tk, N, NW, W, SW, S, SE, E, NE, CENTER
-from random import choice, uniform, randint
+from tkinter import filedialog, Canvas, Button, Tk, N, NW, W, SW, S, SE, E, NE, CENTER
+from core import runni_bota, vypni_bota
+import shutil, os, csv, random
 
 # konstanty pro snapovani bloku
-CANVAS_WIDTH = 900
-CANVAS_HEIGHT = 900
+CANVAS_WIDTH = 1400
+CANVAS_HEIGHT = 1000
 SNAP_TRESHOLD = 20
 RECTANGLE_SIDE_SIZE = 100
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
@@ -11,6 +12,9 @@ EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
 FONT_SIZE = 32
 FONT_FAMILY = "Helvetica"
 # FONT_FAMILY jsou "Arial", "Calibri", "Comic Sans MS", "Courier New", "Georgia", "Helvetica", "Impact", "Lucida Console", "Lucida Sans Unicode", "Palatino Linotype", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"
+
+# konstanty pro bota
+COG_ACTIVATION_PATH = "cogs/activation.csv"
 
 class _SnappableRectangle:
     
@@ -21,6 +25,8 @@ class _SnappableRectangle:
         self.delete_button = None
         self.delete_button_id = None
         self.is_active = False
+        self.name = None
+        self.path = None
         self.prev_x = 0
         self.prev_y = 0
         self.rect = canvas.create_rectangle(x1, y1, x2, y2, fill=fill, tags="rectangle")
@@ -35,6 +41,14 @@ class _SnappableRectangle:
         if not show_delete:
             self.delete_button = Button(master=self.canvas, text="CORE", height=0, width=0, state='disabled', command=lambda: self.root.delete_rectangle(self))
             self.window_id = self.canvas.create_window((x1 + (x2-x1)/2, y1 + (y2-y1)/2), window=self.delete_button, anchor=CENTER)
+
+    def add_name_and_path(self):
+            self.path = filedialog.askopenfilename(title="Glory Hole", initialdir="storage/", filetypes=(("Long Cocks", "*.py"),))
+            while True:
+                if self.path is not None:
+                    break
+            self.name = os.path.basename(self.path)
+            self.name, _ = os.path.splitext(self.name)
 
     def delete(self):
         # Delete rectangle from canvas
@@ -64,6 +78,13 @@ class Tk_extended(Tk):
         self.token = None
         self.core = None
 
+    def mainloop_extended(self, n=0):
+        runni_bota()
+        self.tkinter_extended_setup_function()
+        self.after(5000, self.cog_loader)
+        super().mainloop(n)
+        vypni_bota()
+
     def delete_rectangle(self, rectangle_obj):
         rectangle_obj.delete()
 
@@ -75,51 +96,6 @@ class Tk_extended(Tk):
             if rect_obj.rect == rect_id:
                 self.selected_rectangle = rect_obj
                 break
-
-    def old_on_drag(self, event):
-        dx, dy = event.x - self.prev_x, event.y - self.prev_y
-        
-        if self.selected_rectangle:
-            snapped_rect_obj = self.snap_together(self.selected_rectangle, dx, dy)
-            if snapped_rect_obj:
-                self.selected_rectangle.is_active = True
-                self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
-
-                snapped_rect_objs = self.snap_together(self.selected_rectangle)
-                for snapped_rect_obj in snapped_rect_objs:
-                    self.align_rectangles(self.selected_rectangle, snapped_rect_obj)
-
-            else:
-                self.selected_rectangle.is_active = False
-                self.canvas.move(self.selected_rectangle.rect, dx, dy)
-                self.move_delete_button(self.selected_rectangle, dx, dy)
-
-            return
-        self.prev_x, self.prev_y = event.x, event.y   
-        
-        if snapped_rect_obj:
-            if self.can_unsnap(self.selected_rectangle, snapped_rect_obj, dx, dy):
-                self.selected_rectangle.is_active = False
-                self.canvas.move(self.selected_rectangle.rect, dx, dy)
-                self.move_delete_button(self.selected_rectangle, dx, dy)
-            else:
-                self.selected_rectangle.is_active = True
-                self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
-
-                snapped_rect_objs = self.snap_together(self.selected_rectangle)
-                for snapped_rect_obj in snapped_rect_objs:
-                    self.align_rectangles(self.selected_rectangle, snapped_rect_obj)
-            return
-        
-        snapped_rect_objs = self.snap_together(self.selected_rectangle, dx, dy)
-        if snapped_rect_objs:
-            for snapped_rect_obj in snapped_rect_objs:
-                self.align_rectangles(self.selected_rectangle, snapped_rect_obj, dx, dy)
-            return
-
-        self.selected_rectangle.is_active = False
-        self.canvas.move(self.selected_rectangle.rect, dx, dy)
-        self.move_delete_button(self.selected_rectangle, dx, dy)
 
     def on_drag(self, event):
         dx, dy = event.x - self.prev_x, event.y - self.prev_y
@@ -235,21 +211,21 @@ class Tk_extended(Tk):
                 self.align_rectangles(rect1, other_rect)
 
     def spawn_rectangle(self, is_core=False):
-        x1 = randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
-        y1 = randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
+        x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
+        y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
 
         if is_core:
             x2, y2 = x1+CORE_SIDE_SIZE, y1+CORE_SIDE_SIZE
             new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill="black", input_root=self, show_delete=False)
+            self.core = new_rectangle
         else:
             x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
             random_color = self.get_random_color()
             new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=random_color, input_root=self, show_delete=True)
+            new_rectangle.add_name_and_path()
         self.delete_buttons[new_rectangle.rect] = new_rectangle.window_id
         self.rect_to_button_id_dict[new_rectangle] = new_rectangle.window_id
         self.rectangles.append(new_rectangle)
-
-        #TODO: priradit k rectanglu konkretni soubor i s ikonkou
 
         return new_rectangle
     
@@ -286,9 +262,23 @@ class Tk_extended(Tk):
 
         return False
     
+    def cog_loader(self, input=None):
+        try:
+            if input is None:
+                for subcog in self.core.snapped_to:
+                    self.activate_cog(subcog)
+                    for sub_subcog in subcog.snapped_to:
+                        self.cog_loader(sub_subcog)
+            else:
+                for subcog in input.snapped_to:
+                    self.activate_cog(subcog)
+        except:
+            pass # pro preteceni rekurze 
+        self.after(5000, self.cog_loader)       
+
     @staticmethod
     def get_random_color():
-        return "#{:06x}".format(randint(0, 0xFFFFFF))
+        return "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
     @staticmethod
     def rgb_to_hex(r, g, b):
@@ -308,4 +298,23 @@ class Tk_extended(Tk):
         spawn_button = Button(TKe, text="Spawn Rectangle", command=TKe.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE))
         spawn_button.pack()
 
-        return TKe
+    @staticmethod
+    def activate_cog(cog):
+        with open(COG_ACTIVATION_PATH, 'w', newline='\n') as file:
+            writer = csv.writer(file)
+            writer.writerows(cog.name)
+    
+    @staticmethod
+    def deactivate_cog(cog):
+        rows_to_keep = []
+
+        with open(COG_ACTIVATION_PATH, 'r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if cog.name not in row:
+                    rows_to_keep.append(row)
+
+        # Write the updated data back to the file
+        with open(COG_ACTIVATION_PATH, 'w', newline='\n') as file:
+            writer = csv.writer(file)
+            writer.writerows(rows_to_keep)
