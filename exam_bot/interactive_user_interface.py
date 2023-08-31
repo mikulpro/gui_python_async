@@ -10,7 +10,7 @@ RECTANGLE_SIDE_SIZE = 100
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
 FONT_SIZE = 32
-FONT_FAMILY = "Helvetica"
+FONT_FAMILY = "Arial"
 # FONT_FAMILY jsou "Arial", "Calibri", "Comic Sans MS", "Courier New", "Georgia", "Helvetica", "Impact", "Lucida Console", "Lucida Sans Unicode", "Palatino Linotype", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"
 
 # konstanty pro bota
@@ -79,10 +79,10 @@ class Tk_extended(Tk):
         self.core = None
 
     def mainloop_extended(self):
-        runni_bota()
+        #runni_bota()
         self.tkinter_extended_setup_function()
         super().mainloop()
-        vypni_bota()
+        #vypni_bota()
 
     def delete_rectangle(self, rectangle_obj):
         rectangle_obj.delete()
