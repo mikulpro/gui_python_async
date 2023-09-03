@@ -1,6 +1,7 @@
 from tkinter import filedialog, Canvas, Button, Tk, N, NW, W, SW, S, SE, E, NE, CENTER
 from core import runni_bota, vypni_bota
 import shutil, os, csv, random, threading
+import sender.py
 
 # konstanty pro snapovani bloku
 CANVAS_WIDTH = 1400
@@ -287,13 +288,21 @@ class Tk_extended(Tk):
         spawn_button.pack()
 
     @staticmethod
-    def activate_cog(cog):
-        with open(COG_ACTIVATION_PATH, 'w', newline='\n') as file:
-            writer = csv.writer(file)
-            writer.writerows(cog.name)
-    
+    def activate_cog(cog): # In cogs.cog format
+
+    #    with open(COG_ACTIVATION_PATH, 'w', newline='\n') as file:
+    #        writer = csv.writer(file)
+    #       writer.writerows(cog.name)
+
+        sender.send_command("Load ",cog)
+
     @staticmethod
     def deactivate_cog(cog):
+        sender.send_command("Unload ",cog)
+
+
+
+        """
         rows_to_keep = []
 
         with open(COG_ACTIVATION_PATH, 'r') as file:
@@ -306,3 +315,4 @@ class Tk_extended(Tk):
         with open(COG_ACTIVATION_PATH, 'w', newline='\n') as file:
             writer = csv.writer(file)
             writer.writerows(rows_to_keep)
+        """

@@ -1,27 +1,19 @@
 from discord.ext import commands, tasks
 import random
 import discord
-from cogs import EXTENSIONS
+from pkgutil import iter_modules
+
 
 class LoadCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.reloader.start()
 	
-    # @tasks.loop(seconds=5)
-    # async def reloader(self):
-    #     from cogs import EXTENSIONS
-    #     #[m.name for m in iter_modules(['cogs'], prefix='cogs.')]
-    #     for extension in EXTENSIONS:
-    #         try:
-    #             await self.bot.load_extension(extension)
-    #         except:
-    #             print(f"fail{extension}")
+
 
     @tasks.loop(seconds=5)
     async def reloader(self):
-        from cogs import EXTENSIONS
-        
+        """
         VIP_list = []
         with open("active.csv", "r") as f:
             VIP_list = f.readlines()
@@ -32,6 +24,14 @@ class LoadCog(commands.Cog):
                     await self.bot.load_extension(extension)
                 except:
                     print(f"fail{extension}")
+        """
+        for extension in [m.name for m in iter_modules(['cogs'], prefix='cogs.')]:
+            try:
+                await self.bot.load_extension(extension)
+            except:
+                print(f"fail{extension}")
+
+
 
     @commands.command()
     async def lol2(self, ctx):
@@ -41,3 +41,10 @@ class LoadCog(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(LoadCog(bot))
+
+
+"""
+file
+csv/json/txt
+
+"""
