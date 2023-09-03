@@ -20,7 +20,6 @@ class MyBot(commands.Bot):
     async def setup_hook(self):     #for extencion of initial extencions
 
         await self.load_extension("loadcog")
-        await self.load_extension("cogs.blackjackcog")
        
 load_dotenv()
 MyBot().run(os.getenv("DISCORD_TOKEN"))
