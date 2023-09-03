@@ -1,6 +1,8 @@
 from interactive_user_interface import Tk_extended
-import threading
 
+GUI = Tk_extended().mainloop_extended()
+
+"""
 def cog_loader(root): #, input=None):
     while True:
         try:
@@ -15,7 +17,9 @@ def cog_loader(root): #, input=None):
                     root.activate_cog(subcog)
         except:
             pass # pro preteceni rekurze
+"""
 
-GUI = Tk_extended().mainloop_extended()
+"""
 cog_loader_thread = threading.Thread(target=cog_loader(GUI))
 GUI.start_cog_loader(cog_loader_thread)
+"""

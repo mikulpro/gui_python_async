@@ -15,4 +15,4 @@ def send_command(command):
 
 # When you want to send a command from your GUI
 if __name__ == "__main__":
-    send_command("Load cogs.openaicog")
+    send_command("Load cogs.basiccog")

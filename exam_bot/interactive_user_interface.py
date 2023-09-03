@@ -1,7 +1,7 @@
 from tkinter import filedialog, Canvas, Button, Tk, N, NW, W, SW, S, SE, E, NE, CENTER
 from core import runni_bota, vypni_bota
 import shutil, os, csv, random, threading
-import sender.py
+from sender import send_command
 
 # konstanty pro snapovani bloku
 CANVAS_WIDTH = 1400
@@ -80,10 +80,8 @@ class Tk_extended(Tk):
         self.core = None
 
     def mainloop_extended(self):
-        #runni_bota()
         self.tkinter_extended_setup_function()
         super().mainloop()
-        #vypni_bota()
 
     def delete_rectangle(self, rectangle_obj):
         rectangle_obj.delete()
@@ -96,6 +94,13 @@ class Tk_extended(Tk):
             if rect_obj.rect == rect_id:
                 self.selected_rectangle = rect_obj
                 break
+
+        for rectangle in self.rectangles:
+            if rectangle.is_active and rectangle != self.core:
+                self.activate_cog(rectangle.associated_file)
+                for sub_rectangle in rectangle.snapped_to:
+                    if sub_rectangle.is_active and sub_rectangle != self.core:
+                        self.activate_cog(sub_rectangle)
 
     def on_drag(self, event):
         dx, dy = event.x - self.prev_x, event.y - self.prev_y
@@ -155,6 +160,12 @@ class Tk_extended(Tk):
                         for item in rect.snapped_to:
                             snapped_rects.append(item)
                         return snapped_rects
+        
+        # if self.core in snapped_rects:
+        #     for cog in snapped_rects:
+        #         if cog != self.core:
+        #             self.activate_cog(cog)
+
         return None
 
     def align_rectangles(self, rect1, rect2, x, y):      
@@ -294,11 +305,11 @@ class Tk_extended(Tk):
     #        writer = csv.writer(file)
     #       writer.writerows(cog.name)
 
-        sender.send_command("Load ",cog)
+        send_command(f"Load {cog}")
 
     @staticmethod
     def deactivate_cog(cog):
-        sender.send_command("Unload ",cog)
+        send_command(f"Unload {cog}")
 
 
 
