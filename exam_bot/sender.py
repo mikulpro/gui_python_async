@@ -1,4 +1,4 @@
-# gui_control.py
+# communication with bot
 import socket
 
 def send_command(command):
@@ -15,4 +15,4 @@ def send_command(command):
 
 # When you want to send a command from your GUI
 if __name__ == "__main__":
-    send_command("Load cogs.basiccog")
+    send_command("Load cogs.openaicog")

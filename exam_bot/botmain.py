@@ -20,8 +20,9 @@ class MyBot(commands.Bot):
     async def setup_hook(self):     #for extencion of initial extencions
 
         await self.load_extension("loadcog")
+        await self.load_extension("cogs.blackjackcog")
        
 load_dotenv()
 MyBot().run(os.getenv("DISCORD_TOKEN"))
 
-#READ! do to some vscode/python bs, doesnt work if its not opened inside the exambot folder. fuck me if i know why
+#READ! do to some vscode/python/pkgutil bs, doesnt work if its not opened inside the exambot folder.

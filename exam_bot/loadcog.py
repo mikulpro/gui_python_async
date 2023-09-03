@@ -52,7 +52,6 @@ class LoadCog(commands.Cog):
 
     @tasks.loop(seconds=4)
     async def manual_reloader(self):
-       
         for extension in [m.name for m in iter_modules(['cogs'], prefix='cogs.')]:
             try:
                 await self.bot.load_extension(extension)
@@ -68,7 +67,7 @@ class LoadCog(commands.Cog):
     async def startmanualload(self, ctx):
         self.manual_reloader.start()
         await ctx.send("sure nerd")
-        # actually starts manual loading
+        # starts manual loading
         # !!! WORKS ONLY WHEN LAUNCHED IN EXAMBOT !!! 
 
 async def setup(bot):
