@@ -38,13 +38,15 @@ class LoadCog(commands.Cog):
                     if parts[0] == "Load":
                         await self.bot.load_extension(parts[1])
                     elif parts[0] == "Unload":
-                        await self.bot.unload_extension(parts[1])   
+                        await self.bot.unload_extension(parts[1]) 
+                    elif parts[0] == "Reload":
+                        await self.bot.reload_extension(parts[1])  
                     else:
                         print(f"uknowns command: {parts}")
             except:
                 print(f"fail: {parts}")
             # Sending a response
-            response = "Command received"
+            response = "Success"
             conn.sendall(response.encode('utf-8'))
 
         finally:
