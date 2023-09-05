@@ -50,6 +50,7 @@ class _SnappableRectangle:
                     break
             self.name = os.path.basename(self.path)
             self.name, _ = os.path.splitext(self.name)
+            print(self.name)
 
     def delete(self):
         # Delete rectangle from canvas
@@ -97,10 +98,10 @@ class Tk_extended(Tk):
 
         for rectangle in self.rectangles:
             if rectangle.is_active and rectangle != self.core:
-                self.activate_cog(f"cogs.{rectangle.name}")
-                # for sub_rectangle in rectangle.snapped_to:
-                #     if sub_rectangle.is_active and sub_rectangle != self.core:
-                #         self.activate_cog(sub_rectangle.associated_file)
+                self.activate_cog(rectangle.name)
+                for sub_rectangle in rectangle.snapped_to:
+                    if sub_rectangle.is_active and sub_rectangle != self.core:
+                        self.activate_cog(sub_rectangle)
 
     def on_drag(self, event):
         dx, dy = event.x - self.prev_x, event.y - self.prev_y
@@ -234,6 +235,7 @@ class Tk_extended(Tk):
             random_color = self.get_random_color()
             new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=random_color, input_root=self, show_delete=True)
             new_rectangle.add_name_and_path()
+            print(new_rectangle.name)
         self.delete_buttons[new_rectangle.rect] = new_rectangle.window_id
         self.rect_to_button_id_dict[new_rectangle] = new_rectangle.window_id
         self.rectangles.append(new_rectangle)
@@ -305,11 +307,11 @@ class Tk_extended(Tk):
     #        writer = csv.writer(file)
     #       writer.writerows(cog.name)
 
-        send_command(f"Load {cog}")
+        send_command(f"Load cogs.{cog}")
 
     @staticmethod
     def deactivate_cog(cog):
-        send_command(f"Unload {cog}")
+        send_command(f"Unload cogs.{cog}")
 
 
 
