@@ -4,9 +4,9 @@ import shutil, os, csv, random, threading
 from sender import send_command
 
 # konstanty pro snapovani bloku
-CANVAS_WIDTH = 1400
-CANVAS_HEIGHT = 1000
-SNAP_TRESHOLD = 20
+CANVAS_WIDTH = 800
+CANVAS_HEIGHT = 600
+SNAP_TRESHOLD = 15
 RECTANGLE_SIDE_SIZE = 100
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
@@ -97,10 +97,10 @@ class Tk_extended(Tk):
 
         for rectangle in self.rectangles:
             if rectangle.is_active and rectangle != self.core:
-                self.activate_cog(rectangle.associated_file)
-                for sub_rectangle in rectangle.snapped_to:
-                    if sub_rectangle.is_active and sub_rectangle != self.core:
-                        self.activate_cog(sub_rectangle)
+                self.activate_cog(f"cogs.{rectangle.name}")
+                # for sub_rectangle in rectangle.snapped_to:
+                #     if sub_rectangle.is_active and sub_rectangle != self.core:
+                #         self.activate_cog(sub_rectangle.associated_file)
 
     def on_drag(self, event):
         dx, dy = event.x - self.prev_x, event.y - self.prev_y
@@ -284,9 +284,9 @@ class Tk_extended(Tk):
     def rgb_to_hex(r, g, b):
         return "#{:02x}{:02x}{:02x}".format(r, g, b)
     
-    @staticmethod
-    def tkinter_extended_setup_function():
-        TKe = Tk_extended()
+    def tkinter_extended_setup_function(self):
+        #TKe = Tk_extended()
+        TKe = self
         TKe.title("Cog Control")
         TKe.canvas = Canvas(TKe, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
         TKe.canvas.pack()
