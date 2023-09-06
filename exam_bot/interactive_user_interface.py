@@ -4,13 +4,13 @@ import shutil, os, csv, random, threading
 from sender import send_command
 
 # konstanty pro snapovani bloku
-CANVAS_WIDTH = 800
-CANVAS_HEIGHT = 600
+CANVAS_WIDTH = 1000
+CANVAS_HEIGHT = 700
 SNAP_TRESHOLD = 15
 RECTANGLE_SIDE_SIZE = 100
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
-FONT_SIZE = 32
+FONT_SIZE = 28
 FONT_FAMILY = "Arial"
 # FONT_FAMILY jsou "Arial", "Calibri", "Comic Sans MS", "Courier New", "Georgia", "Helvetica", "Impact", "Lucida Console", "Lucida Sans Unicode", "Palatino Linotype", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"
 
@@ -42,6 +42,10 @@ class _SnappableRectangle:
         if not show_delete:
             self.delete_button = Button(master=self.canvas, text="CORE", height=0, width=0, state='disabled', command=lambda: self.root.delete_rectangle(self))
             self.window_id = self.canvas.create_window((x1 + (x2-x1)/2, y1 + (y2-y1)/2), window=self.delete_button, anchor=CENTER)
+
+    def as_dict(self):
+        return {'left': self.left, 'right': self.right, 'top': self.top, 'bottom': self.bottom}
+
 
     def add_name_and_path(self):
             self.path = filedialog.askopenfilename(title="Select Valid Discord Cog File", initialdir="storage/", filetypes=(("Discord Cog", "*.py"),))
@@ -226,6 +230,10 @@ class Tk_extended(Tk):
         x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
         y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
 
+        while self.does_overlap(x1, y1, EDGE_ZONE_SIZE+SNAP_TRESHOLD, EDGE_ZONE_SIZE+SNAP_TRESHOLD, self.rectangles):
+            x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
+            y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
+
         if is_core:
             x2, y2 = x1+CORE_SIDE_SIZE, y1+CORE_SIDE_SIZE
             new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill="black", input_root=self, show_delete=False)
@@ -313,8 +321,6 @@ class Tk_extended(Tk):
     def deactivate_cog(cog):
         send_command(f"Unload cogs.{cog}")
 
-
-
         """
         rows_to_keep = []
 
@@ -329,3 +335,22 @@ class Tk_extended(Tk):
             writer = csv.writer(file)
             writer.writerows(rows_to_keep)
         """
+
+    @staticmethod
+    def does_overlap(x1, y1, width, height, rectangles):
+        left = x1 - width/2
+        right = x1 + width/2
+        top = y1 - height/2
+        bottom = y1 + height/2
+        
+        for rect in rectangles:
+            rect_dict = rect.as_dict()
+            if (left < rect_dict['right'] and right > rect_dict['left'] and
+                top < rect_dict['bottom'] and bottom > rect_dict['top']):
+                return True
+
+        return False
+
+if __name__ == "__main__":
+    GUI = Tk_extended()
+    GUI.mainloop_extended()
