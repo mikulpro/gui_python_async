@@ -44,7 +44,7 @@ class _SnappableRectangle:
             self.window_id = self.canvas.create_window((x1 + (x2-x1)/2, y1 + (y2-y1)/2), window=self.delete_button, anchor=CENTER)
 
     def add_name_and_path(self):
-            self.path = filedialog.askopenfilename(title="Glory Hole", initialdir="storage/", filetypes=(("Long Cocks", "*.py"),))
+            self.path = filedialog.askopenfilename(title="Select Valid Discord Cog File", initialdir="storage/", filetypes=(("Discord Cog", "*.py"),))
             while True:
                 if self.path is not None:
                     break
@@ -289,7 +289,7 @@ class Tk_extended(Tk):
     def tkinter_extended_setup_function(self):
         #TKe = Tk_extended()
         TKe = self
-        TKe.title("Cog Control")
+        TKe.title("Discord Cog Manager")
         TKe.canvas = Canvas(TKe, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
         TKe.canvas.pack()
 
