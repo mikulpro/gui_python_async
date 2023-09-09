@@ -20,12 +20,10 @@ COG_ACTIVATION_PATH = "cogs/activation.csv"
 
 class _SnappableRectangle:
     
-    def __init__(self, canvas, x1, y1, x2, y2, fill, input_root, show_delete=True, tags=None):
+    def __init__(self, canvas, x1, y1, x2, y2, fill, input_root):
         self.associated_file = None
         self.bottom = None
         self.canvas = canvas
-        self.delete_button = None
-        self.delete_button_id = None
         self.is_active = False
         self.last_pos = (abs(x2-x1), abs(y2-y1))
         self.left = None
@@ -38,7 +36,7 @@ class _SnappableRectangle:
         self.right = None
         self.root = input_root
         self.snap_distance = SNAP_TRESHOLD
-        self.tags = tags
+        self.tag = str(self.root.get_id())
         self.top = None
         self.unsnap_force = UNSNAP_TRESHOLD
         self.window_id = None
@@ -46,6 +44,7 @@ class _SnappableRectangle:
         self.canvas.tag_bind(self.rect, '<ButtonPress-1>', self.start_drag)
         self.canvas.tag_bind(self.rect, '<B1-Motion>', self.drag)
         self.canvas.tag_bind(self.rect, '<ButtonRelease-1>', self.stop_drag)
+        self.canvas.latest_rectangle = self
 
     def add_name_and_path(self):
             self.path = filedialog.askopenfilename(title="Select Valid Discord Cog File", initialdir="storage/", filetypes=(("Discord Cog", "*.py"),))
@@ -54,23 +53,12 @@ class _SnappableRectangle:
                     break
             self.name = os.path.basename(self.path)
             self.name, _ = os.path.splitext(self.name)
-            print(self.name)
 
     def as_dict(self):
         return {'left': self.left, 'right': self.right, 'top': self.top, 'bottom': self.bottom}
 
     def delete(self):
         self.canvas.delete(self.rect)
-        
-        if self.delete_button:
-            self.delete_button.destroy()
-            self.canvas.delete(self.window_id)
-
-        if self in self.root.rectangles:
-            self.root.rectangles.remove(self)
-        
-        if self.rect in self.root.delete_buttons:
-            del self.root.delete_buttons[self.rect]
     
     def drag(self, event):
         dx = event.x - self.last_pos[0]
@@ -128,10 +116,12 @@ class _SnappableRectangle:
 class Tk_extended(Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)       
-        self.canvas = None
-        self.core = None
+        self.canvas = Canvas(self, bg="white", width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+        self.last_id = 0
         self.last_rectangle = None
         self.rectangles = []
+
+        self.core = _SnappableRectangle(canvas=self.canvas, x1=EDGE_ZONE_SIZE, y1=EDGE_ZONE_SIZE, x2=EDGE_ZONE_SIZE+CORE_SIDE_SIZE, y2=EDGE_ZONE_SIZE+CORE_SIDE_SIZE, fill="black", input_root=self)
 
     def align_rectangles(self, rect1, rect2, x, y):      
         if rect2 in rect1.snapped_to or rect1 in rect2.snapped_to:
@@ -202,7 +192,7 @@ class Tk_extended(Tk):
 
     def delete_rectangle(self):
         if self.last_rectangle:
-            self.canvas.delete(self.last_rectangle)
+            self.canvas.delete(self.last_rectangle.tag)
             self.last_rectangle = None
 
     def drag_rectangle(self, event):
@@ -214,6 +204,10 @@ class Tk_extended(Tk):
                 self.canvas.itemconfig(closest, fill="green")
             else:
                 self.canvas.itemconfig(closest, fill="blue")
+    
+    def get_id(self):
+        self.last_id += 1
+        return self.last_id
 
     def is_snapped_to_core(self, rectangle):
         r_coords = self.canvas.coords(rectangle)
@@ -228,7 +222,7 @@ class Tk_extended(Tk):
         self.tkinter_extended_setup_function()
         super().mainloop()
 
-    def spawn_rectangle(self, is_core=False):
+    def spawn_rectangle(self):
         x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
         y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
 
@@ -237,32 +231,23 @@ class Tk_extended(Tk):
             y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
 
         x2, y2 = x1+CORE_SIDE_SIZE, y1+CORE_SIDE_SIZE
-        new_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill="white", input_root=self, show_delete=False, tags=("draggable",))
+        self.last_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=str(self.get_random_color()), input_root=self)
 
-        if is_core:
-            new_rectangle.fill = "black"
-            new_rectangle.show_delete = False
-            self.core = new_rectangle
-        else:
-            x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
-            new_rectangle.fill = self.get_random_color()
-            new_rectangle.add_name_and_path()
-        
-        return new_rectangle
+        x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
+        self.last_rectangle.add_name_and_path()
+
+        return self.last_rectangle
 
     def tkinter_extended_setup_function(self):
-        TKe = self
-        TKe.title("Discord Cog Manager")
-        TKe.canvas = Canvas(TKe, bg="white", width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-        TKe.canvas.pack(pady=20, padx=20)
-
-        self.core = TKe.spawn_rectangle(is_core=True)
+        self.title("Discord Cog Manager")
+        
+        self.canvas.pack(pady=20, padx=20)
         self.canvas.bind("<B1-Motion>", self.drag_rectangle)
 
-        spawn_button = Button(TKe, text="Spawn Rectangle", command=TKe.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE))
+        spawn_button = Button(self, text="Spawn Rectangle", command=self.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE))
         spawn_button.pack(pady=10)
 
-        delete_button = Button(TKe, text="Delete Last Rectangle", command=TKe.delete_rectangle, font=(FONT_FAMILY, FONT_SIZE))
+        delete_button = Button(self, text="Delete Last Rectangle", command=self.delete_rectangle, font=(FONT_FAMILY, FONT_SIZE))
         delete_button.pack(pady=10)
 
     @staticmethod
