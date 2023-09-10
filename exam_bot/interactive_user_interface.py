@@ -1,5 +1,5 @@
 from tkinter import filedialog, Canvas, Button, Tk, N, NW, W, SW, S, SE, E, NE, CENTER
-import os, random
+import os, random, threading
 from sender import send_command
 from math import sqrt
 
@@ -113,6 +113,7 @@ class Tk_extended(Tk):
         self.rectangles = []
         self.last_id = 0
         self.last_rectangle = None
+        self.lock = threading.Lock()
 
         # setup inteligentnich objektu
         self.canvas = Canvas(self, bg="white", width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
@@ -120,6 +121,12 @@ class Tk_extended(Tk):
         self.core.canvas.itemconfig(self.core.text_object, text="CORE")
         self.rectangles.append(self.core)
         self.canvas.after(200, lambda: self.draw_grid())
+
+    def activate_cog(self, cog):
+        threading.Thread(target=self.task(cog, "Load")).start()
+
+    def deactivate_cog(self, cog):
+        threading.Thread(target=self.task(cog, "Unload")).start()
 
     def delete_last_rectangle(self):
         index = self.number_of_rectangles - self.number_of_deleted_rectangles
@@ -257,6 +264,10 @@ class Tk_extended(Tk):
 
         return temp
 
+    def task(self, file_name, status):
+        with self.lock:
+            succ = send_command(f"{status} cogs.{file_name}")
+
     def tkinter_extended_setup_function(self):
         self.title("Discord Cog Manager")
         
@@ -276,11 +287,6 @@ class Tk_extended(Tk):
         supreme_delete_button.pack(pady=BUTTON_PADDING_Y)
 
     @staticmethod
-    def activate_cog(cog):
-        print(f"Load cogs.{cog}")
-        send_command(f"Load cogs.{cog}")
-
-    @staticmethod
     def closest_tag(canvas, x, y):
         min_distance = float("inf")
         closest_item = None
@@ -297,11 +303,6 @@ class Tk_extended(Tk):
                     closest_item = item
 
         return closest_item
-
-    @staticmethod
-    def deactivate_cog(cog):
-        print(f"Unload cogs.{cog}")
-        send_command(f"Unload cogs.{cog}")
     
     @staticmethod
     def get_random_color():

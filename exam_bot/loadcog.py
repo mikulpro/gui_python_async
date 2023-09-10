@@ -5,6 +5,7 @@ import socket
 import asyncio
 import logging
 from pkgutil import iter_modules
+import os
 
 # Initialize the logger
 logger = logging.getLogger('discord.LoadCog')
@@ -21,6 +22,8 @@ class LoadCog(commands.Cog):
     @tasks.loop(seconds=1)
     async def reciever(self):
         available_cogs = [m.name for m in iter_modules(['cogs'], prefix='cogs.')]
+        #print(available_cogs)
+        #print(list_files_in_directory('exam_bot\cogs'))
         try:
             conn, addr = self.server_socket.accept()
         except BlockingIOError:
@@ -72,3 +75,12 @@ class LoadCog(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(LoadCog(bot))
+
+def list_files_in_directory(directory):
+    """Lists all files in a specified directory."""
+    try:
+        for foldername, subfolders, filenames in os.walk(directory):
+            for filename in filenames:
+                print(os.path.join(foldername, filename))
+    except Exception as e:
+        print(f"An error occurred: {e}")
