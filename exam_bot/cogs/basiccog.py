@@ -13,17 +13,17 @@ class ExampleCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if self.depth > 15:
+            logger.info(f'Rekurze killed. Depth: {self.depth}')
             self.depth = 0  # Resetting for future use
             return
         if message.content.startswith('Rekurze'):
             self.depth += 1
             await message.channel.send(f'{message.content} co to je sakra?')
-            logger.info(f'Rekurze triggered. Depth: {self.depth}')
         if message.author.bot:
             return
         if message.content.startswith('Based'):
             await message.channel.send('Based? Based on what regard.')
-            logger.info('Based command triggered.')
+            
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -42,12 +42,12 @@ class ExampleCog(commands.Cog):
     @commands.command()
     async def HowIamIfeeling(self, ctx):
         await ctx.send("<:PepeKMS:776788745461825557>")
-        logger.info('HowIamIfeeling command triggered.')
+        
 
     @commands.command()
     async def lol(self, ctx):
         await ctx.send("lol indeed")
-        logger.info('lol command triggered.')
+        
 
     @commands.command()
     async def roll(self, ctx, dice: str):
@@ -59,7 +59,7 @@ class ExampleCog(commands.Cog):
             return
         result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
         await ctx.send(result)
-        logger.info(f'Roll command triggered. Rolls: {rolls}, Limit: {limit}')
+        
 
 async def setup(bot):
     await bot.add_cog(ExampleCog(bot))
