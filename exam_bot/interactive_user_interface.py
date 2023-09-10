@@ -4,6 +4,7 @@ from sender import send_command
 from math import sqrt
 
 # konstanty pro snapovani bloku
+ACTIVE_BACKGROUND_BUTTON_COLOR = "black"
 BUTTON_PADDING_Y = 3
 BUTTON_WIDTH = 30
 CANVAS_WIDTH = 1000
@@ -275,16 +276,16 @@ class Tk_extended(Tk):
         self.canvas.pack(pady=20, padx=20)
         self.canvas.bind("<B1-Motion>", self.drag_rectangle)
 
-        spawn_button = Button(self, text="Load Setup to Discord Bot", command=self.load_setup_to_discord_bot, font=(FONT_FAMILY, FONT_SIZE_BUTTONS), width=BUTTON_WIDTH)
+        spawn_button = Button(self, text="Load Setup to Discord Bot", command=self.load_setup_to_discord_bot, font=(FONT_FAMILY, FONT_SIZE_BUTTONS), width=BUTTON_WIDTH, activebackground=ACTIVE_BACKGROUND_BUTTON_COLOR)
         spawn_button.pack(pady=BUTTON_PADDING_Y)
 
-        spawn_button = Button(self, text="Spawn Rectangle", command=self.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS), width=BUTTON_WIDTH)
+        spawn_button = Button(self, text="Spawn Rectangle", command=self.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS), width=BUTTON_WIDTH, activebackground=ACTIVE_BACKGROUND_BUTTON_COLOR)
         spawn_button.pack(pady=BUTTON_PADDING_Y)
 
-        delete_button = Button(self, text="Delete Last Rectangle", command=self.delete_last_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS), width=BUTTON_WIDTH)
+        delete_button = Button(self, text="Delete Last Rectangle", command=self.delete_last_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS), width=BUTTON_WIDTH, activebackground=ACTIVE_BACKGROUND_BUTTON_COLOR)
         delete_button.pack(pady=BUTTON_PADDING_Y)
 
-        supreme_delete_button = Button(self, text="Delete Everything Except CORE", command=self.delete_every_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS), width=BUTTON_WIDTH)
+        supreme_delete_button = Button(self, text="Delete Everything Except CORE", command=self.delete_every_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS), width=BUTTON_WIDTH, activebackground=ACTIVE_BACKGROUND_BUTTON_COLOR)
         supreme_delete_button.pack(pady=BUTTON_PADDING_Y)
 
     @staticmethod
