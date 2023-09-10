@@ -4,14 +4,15 @@ import shutil, os, csv, random, threading
 from sender import send_command
 
 # konstanty pro snapovani bloku
+BUTTON_PADDING_Y = 3
 CANVAS_WIDTH = 1000
 CANVAS_HEIGHT = 500
 SNAP_TRESHOLD = 15
-RECTANGLE_SIDE_SIZE = 100
+RECTANGLE_SIDE_SIZE = 125
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
-FONT_SIZE = 12
-FONT_SIZE_SMALL = 12
+FONT_SIZE_BUTTONS = 12
+FONT_SIZE_RECTANGLES = 14
 FONT_FAMILY = "Arial"
 UNSNAP_TRESHOLD = 30
 # FONT_FAMILY jsou "Arial", "Calibri", "Comic Sans MS", "Courier New", "Georgia", "Helvetica", "Impact", "Lucida Console", "Lucida Sans Unicode", "Palatino Linotype", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"
@@ -41,7 +42,7 @@ class _SnappableRectangle:
         self.tag = str(self.root.get_id())
         self.text_center = [int((x1+x2)/2), int((y1+y2)/2)]
         self.text_string = "PLACE_HOLDER"
-        self.text_object = self.canvas.create_text(self.text_center[0], self.text_center[1], text=self.text_string, font=(FONT_FAMILY, FONT_SIZE_SMALL), fill="white")
+        self.text_object = self.canvas.create_text(self.text_center[0], self.text_center[1], text=self.text_string, font=(FONT_FAMILY, FONT_SIZE_RECTANGLES), fill="white")
         self.top = None
         self.unsnap_force = UNSNAP_TRESHOLD
         self.window_id = None
@@ -85,10 +86,6 @@ class _SnappableRectangle:
         self.canvas.move(self.rect, dx, dy)
         self.canvas.move(self.text_object, dx, dy)
         self.last_pos = (event.x, event.y)
-
-        # for other_rect in self.canvas.find_withtag('draggable'):
-        #     if other_rect != self.rect:
-        #         self.snap_to(other_rect)
 
     def start_drag(self, event):
         self.original_pos = self.canvas.coords(self.rect)[:2]
@@ -185,6 +182,9 @@ class Tk_extended(Tk):
         
         return horizontal_snapped or vertical_snapped
 
+    def load_setup_to_discord_bot(self):
+        ...
+
     def mainloop_extended(self):
         self.tkinter_extended_setup_function()
         super().mainloop()
@@ -223,14 +223,17 @@ class Tk_extended(Tk):
         self.canvas.pack(pady=20, padx=20)
         self.canvas.bind("<B1-Motion>", self.drag_rectangle)
 
-        spawn_button = Button(self, text="Spawn Rectangle", command=self.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE))
-        spawn_button.pack(pady=10)
+        spawn_button = Button(self, text="Load Setup to Discord Bot (takes few seconds)", command=self.load_setup_to_discord_bot, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
+        spawn_button.pack(pady=BUTTON_PADDING_Y)
 
-        delete_button = Button(self, text="Delete Last Rectangle (buggy)", command=self.delete_last_rectangle, font=(FONT_FAMILY, FONT_SIZE))
-        delete_button.pack(pady=10)
+        spawn_button = Button(self, text="Spawn Rectangle", command=self.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
+        spawn_button.pack(pady=BUTTON_PADDING_Y)
 
-        supreme_delete_button = Button(self, text="Delete Everything Except CORE", command=self.delete_every_rectangle, font=(FONT_FAMILY, FONT_SIZE))
-        supreme_delete_button.pack(pady=10)
+        delete_button = Button(self, text="Delete Last Rectangle (buggy)", command=self.delete_last_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
+        delete_button.pack(pady=BUTTON_PADDING_Y)
+
+        supreme_delete_button = Button(self, text="Delete Everything Except CORE", command=self.delete_every_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
+        supreme_delete_button.pack(pady=BUTTON_PADDING_Y)
 
     @staticmethod
     def activate_cog(cog):
@@ -259,25 +262,10 @@ class Tk_extended(Tk):
     def deactivate_cog(cog):
         print(f"Unload cogs.{cog}")
         send_command(f"Unload cogs.{cog}")
-
-    # @staticmethod
-    # def does_overlap(x1, y1, width, height, rectangles):
-    #     left = x1 - width/2
-    #     right = x1 + width/2
-    #     top = y1 - height/2
-    #     bottom = y1 + height/2
-        
-    #     for rect in rectangles:
-    #         rect_dict = rect.as_dict()
-    #         if (left < rect_dict['right'] and right > rect_dict['left'] and
-    #             top < rect_dict['bottom'] and bottom > rect_dict['top']):
-    #             return True
-
-    #     return False
     
     @staticmethod
     def get_random_color():
-        return "#{:06x}".format(random.randint(0, 0xFFFFFF))
+        return "#{:06x}".format(random.randint(0, 0x7F7F7F))
 
 if __name__ == "__main__":
     GUI = Tk_extended()
