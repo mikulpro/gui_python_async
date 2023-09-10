@@ -134,6 +134,10 @@ class Tk_extended(Tk):
         for rectangle in self.rectangles:
             if rectangle != self.core:
                 try:
+                    if rectangle is not None and rectangle.name != "None" and rectangle.name is not None:
+                        self.deactivate_cog(rectangle.name)
+                except: ...
+                try:
                     self.canvas.delete(rectangle.text_object)
                     self.canvas.delete(rectangle.rect)
                 except: ...
