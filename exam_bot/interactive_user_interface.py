@@ -272,7 +272,7 @@ class Tk_extended(Tk):
         delete_button = Button(self, text="Delete Last Rectangle (buggy)", command=self.delete_last_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
         delete_button.pack(pady=BUTTON_PADDING_Y)
 
-        supreme_delete_button = Button(self, text="Delete Everything Except CORE", command=self.delete_every_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
+        supreme_delete_button = Button(self, text="Delete Everything Except CORE (takes several seconds)", command=self.delete_every_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
         supreme_delete_button.pack(pady=BUTTON_PADDING_Y)
 
     @staticmethod
