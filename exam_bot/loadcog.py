@@ -7,7 +7,7 @@ import logging
 from pkgutil import iter_modules
 
 # Initialize the logger
-logger = logging.getLogger('discord')
+logger = logging.getLogger('discord.LoadCog')
 
 class LoadCog(commands.Cog):
     def __init__(self, bot):
