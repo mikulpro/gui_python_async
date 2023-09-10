@@ -5,12 +5,12 @@ from sender import send_command
 
 # konstanty pro snapovani bloku
 CANVAS_WIDTH = 1000
-CANVAS_HEIGHT = 700
+CANVAS_HEIGHT = 500
 SNAP_TRESHOLD = 15
 RECTANGLE_SIDE_SIZE = 100
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
-FONT_SIZE = 18
+FONT_SIZE = 12
 FONT_SIZE_SMALL = 12
 FONT_FAMILY = "Arial"
 UNSNAP_TRESHOLD = 30
@@ -39,8 +39,9 @@ class _SnappableRectangle:
         self.root = input_root
         self.snap_distance = SNAP_TRESHOLD
         self.tag = str(self.root.get_id())
+        self.text_center = [int((x1+x2)/2), int((y1+y2)/2)]
         self.text_string = "PLACE_HOLDER"
-        self.text_object = self.canvas.create_text((x1+x2)//2, (y1+y2)//2, text=self.text_string, font=(FONT_FAMILY, FONT_SIZE_SMALL), fill="white")
+        self.text_object = self.canvas.create_text(self.text_center[0], self.text_center[1], text=self.text_string, font=(FONT_FAMILY, FONT_SIZE_SMALL), fill="white")
         self.top = None
         self.unsnap_force = UNSNAP_TRESHOLD
         self.window_id = None
@@ -76,7 +77,7 @@ class _SnappableRectangle:
 
     def delete(self):
         self.canvas.delete(self.rect)
-        self.canvas.delete(self.text)
+        self.canvas.delete(self.text_object)
     
     def drag(self, event):
         dx = event.x - self.last_pos[0]
@@ -105,6 +106,8 @@ class _SnappableRectangle:
     def update_center(self):
         x1, y1, x2, y2 = self.canvas.coords(self.rect)
         self.center = [int((x1+x2)/2), int((y1+y2)/2)]
+        self.text_center = self.center
+        self.canvas.coords(self.text_object, self.text_center[0], self.text_center[1])
 
 class Tk_extended(Tk):
     def __init__(self, *args, **kwargs):
@@ -112,6 +115,8 @@ class Tk_extended(Tk):
         super().__init__(*args, **kwargs)       
         
         # setup promennych
+        self.number_of_deleted_rectangles = 0
+        self.number_of_rectangles = 0
         self.rectangles = []
         self.last_id = 0
         self.last_rectangle = None
@@ -123,13 +128,25 @@ class Tk_extended(Tk):
         self.rectangles.append(self.core)
 
     def delete_last_rectangle(self):
-        # TODO: osetrit krajni pripady, aby nedoslo k chybe
-        if self.last_rectangle:
-            self.canvas.delete(self.last_rectangle.tag)
-            try:
-                self.last_rectangle = self.rectangles[-1]
-            except IndexError:
-                self.last_rectangle = None
+        index = self.number_of_rectangles - self.number_of_deleted_rectangles
+        print(f"Attempting to delete rectangle with index {index}")
+        
+        if index > 0 and index < len(self.rectangles):
+            self.canvas.delete(self.rectangles[index].text_object)
+            self.canvas.delete(self.rectangles[index].rect)
+            self.number_of_deleted_rectangles += 1
+
+    def delete_every_rectangle(self):
+        for rectangle in self.rectangles:
+            if rectangle != self.core:
+                try:
+                    self.canvas.delete(rectangle.text_object)
+                    self.canvas.delete(rectangle.rect)
+                except: ...
+        self.rectangles = [self.core]
+        self.number_of_rectangles = 0
+        self.number_of_deleted_rectangles = 0
+        self.last_rectangle = None
 
     def does_overlap(self, rect1, rect2):
         ax, ay = rect1.center
@@ -176,26 +193,29 @@ class Tk_extended(Tk):
         x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
         y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
         x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
-        self.last_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=str(self.get_random_color()), input_root=self)
+        temp = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=str(self.get_random_color()), input_root=self)
+        temp.update_center()
 
         _overlap_issues = True
         while _overlap_issues:
             for other_rectangle in self.rectangles:
-                if self.does_overlap(self.last_rectangle, other_rectangle):
-                    self.delete_last_rectangle()
+                if self.does_overlap(temp, other_rectangle):
+                    temp.delete()
                     x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
                     y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
                     x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
-                    self.last_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=str(self.get_random_color()), input_root=self)
+                    temp = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=str(self.get_random_color()), input_root=self)
+                    temp.update_center()
                     _overlap_issues = True
                     continue
                 else:
                     _overlap_issues = False
 
-        self.last_rectangle.add_name_and_path()
-        self.rectangles.append(self.last_rectangle)
+        temp.add_name_and_path()
+        self.rectangles.append(temp)
+        self.number_of_rectangles += 1
 
-        return self.last_rectangle
+        return temp
 
     def tkinter_extended_setup_function(self):
         self.title("Discord Cog Manager")
@@ -206,8 +226,11 @@ class Tk_extended(Tk):
         spawn_button = Button(self, text="Spawn Rectangle", command=self.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE))
         spawn_button.pack(pady=10)
 
-        delete_button = Button(self, text="Delete Last Rectangle", command=self.delete_last_rectangle, font=(FONT_FAMILY, FONT_SIZE))
+        delete_button = Button(self, text="Delete Last Rectangle (buggy)", command=self.delete_last_rectangle, font=(FONT_FAMILY, FONT_SIZE))
         delete_button.pack(pady=10)
+
+        supreme_delete_button = Button(self, text="Delete Everything Except CORE", command=self.delete_every_rectangle, font=(FONT_FAMILY, FONT_SIZE))
+        supreme_delete_button.pack(pady=10)
 
     @staticmethod
     def activate_cog(cog):
