@@ -18,7 +18,7 @@ class LoadCog(commands.Cog):
         self.server_socket.setblocking(False)  # Set the socket to be non-blocking
         self.reciever.start()
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=1)
     async def reciever(self):
         available_cogs = [m.name for m in iter_modules(['cogs'], prefix='cogs.')]
         try:
