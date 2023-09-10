@@ -11,6 +11,7 @@ RECTANGLE_SIDE_SIZE = 100
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
 FONT_SIZE = 18
+FONT_SIZE_SMALL = 12
 FONT_FAMILY = "Arial"
 UNSNAP_TRESHOLD = 30
 # FONT_FAMILY jsou "Arial", "Calibri", "Comic Sans MS", "Courier New", "Georgia", "Helvetica", "Impact", "Lucida Console", "Lucida Sans Unicode", "Palatino Linotype", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"
@@ -24,6 +25,7 @@ class _SnappableRectangle:
         self.associated_file = None
         self.bottom = None
         self.canvas = canvas
+        self.center = [int((x1+x2)/2), int((y1+y2)/2)]
         self.is_active = False
         self.last_pos = (abs(x2-x1), abs(y2-y1))
         self.left = None
@@ -37,163 +39,111 @@ class _SnappableRectangle:
         self.root = input_root
         self.snap_distance = SNAP_TRESHOLD
         self.tag = str(self.root.get_id())
+        self.text_string = "PLACE_HOLDER"
+        self.text_object = self.canvas.create_text((x1+x2)//2, (y1+y2)//2, text=self.text_string, font=(FONT_FAMILY, FONT_SIZE_SMALL), fill="white")
         self.top = None
         self.unsnap_force = UNSNAP_TRESHOLD
         self.window_id = None
 
+        # pohyb vykresleneho ctverce
         self.canvas.tag_bind(self.rect, '<ButtonPress-1>', self.start_drag)
         self.canvas.tag_bind(self.rect, '<B1-Motion>', self.drag)
         self.canvas.tag_bind(self.rect, '<ButtonRelease-1>', self.stop_drag)
+
+        # pohyb vykresleneho napisu na ctverci
+        self.canvas.tag_bind(self.text_object, '<ButtonPress-1>', self.start_drag)
+        self.canvas.tag_bind(self.text_object, '<B1-Motion>', self.drag)
+        self.canvas.tag_bind(self.text_object, '<ButtonRelease-1>', self.stop_drag)
+
         self.canvas.latest_rectangle = self
 
     def add_name_and_path(self):
             self.path = filedialog.askopenfilename(title="Select Valid Discord Cog File", initialdir="storage/", filetypes=(("Discord Cog", "*.py"),))
-            while True:
-                if self.path is not None:
-                    break
+            if not self.path:
+                return
             self.name = os.path.basename(self.path)
             self.name, _ = os.path.splitext(self.name)
+
+            # aktualizace labelu
+            if self.name:
+                self.text_string = str(self.name)
+            else:
+                self.text_string = "NAME_ERROR"
+            self.canvas.itemconfig(self.text_object, text=self.text_string)
 
     def as_dict(self):
         return {'left': self.left, 'right': self.right, 'top': self.top, 'bottom': self.bottom}
 
     def delete(self):
         self.canvas.delete(self.rect)
+        self.canvas.delete(self.text)
     
     def drag(self, event):
         dx = event.x - self.last_pos[0]
         dy = event.y - self.last_pos[1]
         self.canvas.move(self.rect, dx, dy)
+        self.canvas.move(self.text_object, dx, dy)
         self.last_pos = (event.x, event.y)
 
-        for other_rect in self.canvas.find_withtag('draggable'):
-            if other_rect != self.rect:
-                self.snap_to(other_rect)
-
-    def is_close_to(self, other_rect):
-        x1, y1, x2, y2 = self.canvas.coords(self.rect)
-        ox1, oy1, ox2, oy2 = self.canvas.coords(other_rect)
-
-        close_left = abs(x2 - ox1) <= self.snap_distance
-        close_right = abs(x1 - ox2) <= self.snap_distance
-        close_top = abs(y1 - oy2) <= self.snap_distance
-        close_bottom = abs(y2 - oy1) <= self.snap_distance
-
-        return close_left, close_right, close_top, close_bottom
-
-    def snap_to(self, other_rect):
-        x1, y1, x2, y2 = self.canvas.coords(self.rect)
-        ox1, oy1, ox2, oy2 = self.canvas.coords(other_rect)
-
-        close_left, close_right, close_top, close_bottom = self.is_close_to(other_rect)
-
-        if close_left:
-            self.canvas.move(self.rect, ox1 - x2, 0)
-            self.left = other_rect
-        elif close_right:
-            self.canvas.move(self.rect, ox2 - x1, 0)
-            self.right = other_rect
-        elif close_top:
-            self.canvas.move(self.rect, 0, oy2 - y1)
-            self.top = other_rect
-        elif close_bottom:
-            self.canvas.move(self.rect, 0, oy1 - y2)
-            self.bottom = other_rect
-
-        new_x, new_y = self.canvas.coords(self.rect)[:2]
-        distance_moved = ((new_x - self.original_pos[0])**2 + (new_y - self.original_pos[1])**2)**0.5
-        if (self.left or self.right or self.top or self.bottom) and distance_moved > self.unsnap_force:
-            self.left, self.right, self.top, self.bottom = None, None, None, None
-            self.canvas.move(self.rect, self.original_pos[0] - new_x, self.original_pos[1] - new_y)
+        # for other_rect in self.canvas.find_withtag('draggable'):
+        #     if other_rect != self.rect:
+        #         self.snap_to(other_rect)
 
     def start_drag(self, event):
-        self.last_pos = (event.x, event.y)
         self.original_pos = self.canvas.coords(self.rect)[:2]
+        self.last_pos = (event.x, event.y)
 
     def stop_drag(self, event):
+        self.update_center()
+    
         self.left, self.right, self.top, self.bottom = None, None, None, None
+        # kontrola stran na pripojeni
+        for item in self.root.rectangles:
+            ...
+        # for core
+
+    def update_center(self):
+        x1, y1, x2, y2 = self.canvas.coords(self.rect)
+        self.center = [int((x1+x2)/2), int((y1+y2)/2)]
 
 class Tk_extended(Tk):
     def __init__(self, *args, **kwargs):
+        # dedicnost
         super().__init__(*args, **kwargs)       
-        self.canvas = Canvas(self, bg="white", width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+        
+        # setup promennych
+        self.rectangles = []
         self.last_id = 0
         self.last_rectangle = None
-        self.rectangles = []
 
+        # setup inteligentnich objektu
+        self.canvas = Canvas(self, bg="white", width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
         self.core = _SnappableRectangle(canvas=self.canvas, x1=EDGE_ZONE_SIZE, y1=EDGE_ZONE_SIZE, x2=EDGE_ZONE_SIZE+CORE_SIDE_SIZE, y2=EDGE_ZONE_SIZE+CORE_SIDE_SIZE, fill="black", input_root=self)
+        self.core.canvas.itemconfig(self.core.text_object, text="CORE")
+        self.rectangles.append(self.core)
 
-    def align_rectangles(self, rect1, rect2, x, y):      
-        if rect2 in rect1.snapped_to or rect1 in rect2.snapped_to:
-            return
-        
-        if rect2 not in rect1.snapped_to:
-            rect2.snapped_to.append(rect1)
-        if rect1 not in rect2.snapped_to:
-            rect1.snapped_to.append(rect2)        
-        
-        bbox1 = self.canvas.bbox(rect1.rect)
-        bbox2 = self.canvas.bbox(rect2.rect)
-
-        if bbox1 is None or bbox2 is None:
-            return
-
-        x_distance_left = abs(bbox1[0] - bbox2[2])
-        x_distance_right = abs(bbox1[2] - bbox2[0])
-        y_distance_top = abs(bbox1[1] - bbox2[3])
-        y_distance_bottom = abs(bbox1[3] - bbox2[1])
-
-        if x_distance_left < x_distance_right and x_distance_left < y_distance_top and x_distance_left < y_distance_bottom:
-            x_offset = bbox2[2] - bbox1[0]
-            y_offset = 0
-        elif x_distance_right < y_distance_top and x_distance_right < y_distance_bottom:
-            x_offset = bbox2[0] - bbox1[2]
-            y_offset = 0
-        elif y_distance_top < y_distance_bottom:
-            x_offset = 0
-            y_offset = bbox2[3] - bbox1[1]
-        else:
-            x_offset = 0
-            y_offset = bbox2[1] - bbox1[3]
-
-        self.canvas.move(rect1.rect, x + x_offset, y + y_offset)
-        self.move_delete_button(rect1, x + x_offset, y + y_offset)
-
-        self.canvas.move(rect2.rect, x_offset, y_offset)
-        self.move_delete_button(rect2, x_offset, y_offset)
-
-        rect1.snapped_to.append(rect2)
-        rect2.snapped_to.append(rect1)
-
-        for other_rect in rect1.snapped_to:
-            if other_rect != rect2:
-                self.align_rectangles(rect2, other_rect)
-
-        for other_rect in rect2.snapped_to:
-            if other_rect != rect1:
-                self.align_rectangles(rect1, other_rect)
-
-    def can_unsnap(self, rect1, rect2, x, y):
-        bbox1 = self.canvas.bbox(rect1.rect)
-        bbox2 = self.canvas.bbox(rect2.rect)
-        if not bbox1 or not bbox2:
-            return False
-
-        new_bbox1 = (bbox1[0] + x, bbox1[1] + y, bbox1[2] + x, bbox1[3] + y)
-
-        if new_bbox1[2] < bbox2[0] or new_bbox1[0] > bbox2[2] or new_bbox1[3] < bbox2[1] or new_bbox1[1] > bbox2[3]:
-            if rect2 in rect1.snapped_to:
-                rect1.snapped_to.remove(rect2)
-            if rect1 in rect2.snapped_to:
-                rect2.snapped_to.remove(rect1)
-            return True
-
-        return False
-
-    def delete_rectangle(self):
+    def delete_last_rectangle(self):
+        # TODO: osetrit krajni pripady, aby nedoslo k chybe
         if self.last_rectangle:
             self.canvas.delete(self.last_rectangle.tag)
-            self.last_rectangle = None
+            try:
+                self.last_rectangle = self.rectangles[-1]
+            except IndexError:
+                self.last_rectangle = None
+
+    def does_overlap(self, rect1, rect2):
+        ax, ay = rect1.center
+        bx, by = rect2.center
+        
+        # kontrola levo, pravo
+        if ax > (bx+RECTANGLE_SIDE_SIZE+UNSNAP_TRESHOLD) or ax < (bx-RECTANGLE_SIDE_SIZE-UNSNAP_TRESHOLD):
+            return False
+            
+        # kontrola nahoru, dolu
+        if ay > (by+RECTANGLE_SIDE_SIZE+UNSNAP_TRESHOLD) or ay < (by-RECTANGLE_SIDE_SIZE-UNSNAP_TRESHOLD):
+            return False
+            
+        return True
 
     def drag_rectangle(self, event):
         closest = self.closest_tag(self.canvas, event.x, event.y)
@@ -225,16 +175,25 @@ class Tk_extended(Tk):
     def spawn_rectangle(self):
         x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
         y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
-
-        while self.does_overlap(x1, y1, EDGE_ZONE_SIZE+SNAP_TRESHOLD, EDGE_ZONE_SIZE+SNAP_TRESHOLD, self.rectangles):
-            x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
-            y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
-
-        x2, y2 = x1+CORE_SIDE_SIZE, y1+CORE_SIDE_SIZE
+        x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
         self.last_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=str(self.get_random_color()), input_root=self)
 
-        x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
+        _overlap_issues = True
+        while _overlap_issues:
+            for other_rectangle in self.rectangles:
+                if self.does_overlap(self.last_rectangle, other_rectangle):
+                    self.delete_last_rectangle()
+                    x1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_WIDTH - EDGE_ZONE_SIZE))
+                    y1 = random.randint((0 + EDGE_ZONE_SIZE), (CANVAS_HEIGHT - EDGE_ZONE_SIZE))
+                    x2, y2 = x1+RECTANGLE_SIDE_SIZE, y1+RECTANGLE_SIDE_SIZE
+                    self.last_rectangle = _SnappableRectangle(canvas=self.canvas, x1=x1, y1=y1, x2=x2, y2=y2, fill=str(self.get_random_color()), input_root=self)
+                    _overlap_issues = True
+                    continue
+                else:
+                    _overlap_issues = False
+
         self.last_rectangle.add_name_and_path()
+        self.rectangles.append(self.last_rectangle)
 
         return self.last_rectangle
 
@@ -247,7 +206,7 @@ class Tk_extended(Tk):
         spawn_button = Button(self, text="Spawn Rectangle", command=self.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE))
         spawn_button.pack(pady=10)
 
-        delete_button = Button(self, text="Delete Last Rectangle", command=self.delete_rectangle, font=(FONT_FAMILY, FONT_SIZE))
+        delete_button = Button(self, text="Delete Last Rectangle", command=self.delete_last_rectangle, font=(FONT_FAMILY, FONT_SIZE))
         delete_button.pack(pady=10)
 
     @staticmethod
@@ -278,20 +237,20 @@ class Tk_extended(Tk):
         print(f"Unload cogs.{cog}")
         send_command(f"Unload cogs.{cog}")
 
-    @staticmethod
-    def does_overlap(x1, y1, width, height, rectangles):
-        left = x1 - width/2
-        right = x1 + width/2
-        top = y1 - height/2
-        bottom = y1 + height/2
+    # @staticmethod
+    # def does_overlap(x1, y1, width, height, rectangles):
+    #     left = x1 - width/2
+    #     right = x1 + width/2
+    #     top = y1 - height/2
+    #     bottom = y1 + height/2
         
-        for rect in rectangles:
-            rect_dict = rect.as_dict()
-            if (left < rect_dict['right'] and right > rect_dict['left'] and
-                top < rect_dict['bottom'] and bottom > rect_dict['top']):
-                return True
+    #     for rect in rectangles:
+    #         rect_dict = rect.as_dict()
+    #         if (left < rect_dict['right'] and right > rect_dict['left'] and
+    #             top < rect_dict['bottom'] and bottom > rect_dict['top']):
+    #             return True
 
-        return False
+    #     return False
     
     @staticmethod
     def get_random_color():
