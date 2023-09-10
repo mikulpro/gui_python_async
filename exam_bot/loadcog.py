@@ -42,6 +42,7 @@ class LoadCog(commands.Cog):
             else:
                 try:
                     await getattr(self.bot, f"{action.lower()}_extension")(cog_name)
+                    logger.info(f"Success at {action}ing {cog_name}")
                     response = "Success"
                 except Exception as e:
                     response = "Failed"
