@@ -1,14 +1,16 @@
 from tkinter import filedialog, Canvas, Button, Tk, N, NW, W, SW, S, SE, E, NE, CENTER
-from core import runni_bota, vypni_bota
-import shutil, os, csv, random, threading
+import os, random
 from sender import send_command
+from math import sqrt
 
 # konstanty pro snapovani bloku
 BUTTON_PADDING_Y = 3
 CANVAS_WIDTH = 1000
 CANVAS_HEIGHT = 500
-SNAP_TRESHOLD = 15
-RECTANGLE_SIDE_SIZE = 125
+RECTANGLE_SIDE_SIZE = 125 # bohuzel nemuze byt abecedne
+SNAP_TRESHOLD = 50
+COG_ACTIVATION_DISTANCE_MAX = RECTANGLE_SIDE_SIZE+SNAP_TRESHOLD
+DEFAULT_CELL_SIZE = COG_ACTIVATION_DISTANCE_MAX
 CORE_SIDE_SIZE = RECTANGLE_SIDE_SIZE # zatim blbne, kdyz je jiny nez RECTANGLE_SIDE_SIZE
 EDGE_ZONE_SIZE = RECTANGLE_SIDE_SIZE+10
 FONT_SIZE_BUTTONS = 12
@@ -93,13 +95,7 @@ class _SnappableRectangle:
 
     def stop_drag(self, event):
         self.update_center()
-    
-        self.left, self.right, self.top, self.bottom = None, None, None, None
-        # kontrola stran na pripojeni
-        for item in self.root.rectangles:
-            ...
-        # for core
-
+          
     def update_center(self):
         x1, y1, x2, y2 = self.canvas.coords(self.rect)
         self.center = [int((x1+x2)/2), int((y1+y2)/2)]
@@ -123,6 +119,7 @@ class Tk_extended(Tk):
         self.core = _SnappableRectangle(canvas=self.canvas, x1=EDGE_ZONE_SIZE, y1=EDGE_ZONE_SIZE, x2=EDGE_ZONE_SIZE+CORE_SIDE_SIZE, y2=EDGE_ZONE_SIZE+CORE_SIDE_SIZE, fill="black", input_root=self)
         self.core.canvas.itemconfig(self.core.text_object, text="CORE")
         self.rectangles.append(self.core)
+        self.canvas.after(200, lambda: self.draw_grid())
 
     def delete_last_rectangle(self):
         index = self.number_of_rectangles - self.number_of_deleted_rectangles
@@ -169,21 +166,60 @@ class Tk_extended(Tk):
             else:
                 self.canvas.itemconfig(closest, fill="blue")
     
+    def draw_grid(self):
+        canvas = self.canvas
+        cell_size = DEFAULT_CELL_SIZE
+
+        # svisle cary
+        for x in range(0, canvas.winfo_width(), cell_size):
+            canvas.create_line(x, 0, x, canvas.winfo_height(), fill='lightgray')
+        
+        # vodorovne cary
+        for y in range(0, canvas.winfo_height(), cell_size):
+            canvas.create_line(0, y, canvas.winfo_width(), y, fill='lightgray')
+        
+        # prenos CORE do popredi
+        canvas.tag_raise(self.core.rect)
+        canvas.tag_raise(self.core.text_object)
+
     def get_id(self):
         self.last_id += 1
         return self.last_id
-
-    def is_snapped_to_core(self, rectangle):
-        r_coords = self.canvas.coords(rectangle)
-        core_coords = self.canvas.coords(self.core_rectangle)
-        
-        horizontal_snapped = r_coords[2] == core_coords[0] or r_coords[0] == core_coords[2]
-        vertical_snapped = r_coords[3] == core_coords[1] or r_coords[1] == core_coords[3]
-        
-        return horizontal_snapped or vertical_snapped
+    
+    def get_nearby_rectangles(self, caller, wanted_distance=COG_ACTIVATION_DISTANCE_MAX):
+        temp = []
+        for item in self.rectangles:
+            if item == caller or item in temp:
+                continue
+            else:
+                real_distance = int(sqrt((item.center[0]-caller.center[0])**2 + (item.center[1]-caller.center[1])**2))
+                if real_distance <= wanted_distance:
+                    temp.append(item)
+        return temp
 
     def load_setup_to_discord_bot(self):
-        ...
+        near_core = self.get_nearby_rectangles(caller=self.core)
+        for near_cog in near_core:
+            if near_cog not in near_core:
+                near_core.append(near_cog)
+            for far_cog in self.get_nearby_rectangles(caller=near_cog):
+                if far_cog not in near_core:
+                    near_core.append(far_cog)
+        
+        cogs_to_activate = near_core.copy()
+        cogs_to_deactivate = self.rectangles.copy()
+        
+        for cog in near_core:
+            try: cogs_to_deactivate.remove(cog)
+            except: ...
+        
+        for item in cogs_to_deactivate:
+            if item is not None and item.name != "None" and item.name is not None:
+                self.deactivate_cog(item.name)
+        
+        for item in cogs_to_activate:
+            if item is not None and item.name != "None" and item.name is not None:
+                self.activate_cog(item.name)
 
     def mainloop_extended(self):
         self.tkinter_extended_setup_function()
@@ -223,7 +259,7 @@ class Tk_extended(Tk):
         self.canvas.pack(pady=20, padx=20)
         self.canvas.bind("<B1-Motion>", self.drag_rectangle)
 
-        spawn_button = Button(self, text="Load Setup to Discord Bot (takes few seconds)", command=self.load_setup_to_discord_bot, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
+        spawn_button = Button(self, text="Load Setup to Discord Bot (takes several seconds)", command=self.load_setup_to_discord_bot, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
         spawn_button.pack(pady=BUTTON_PADDING_Y)
 
         spawn_button = Button(self, text="Spawn Rectangle", command=self.spawn_rectangle, font=(FONT_FAMILY, FONT_SIZE_BUTTONS))
