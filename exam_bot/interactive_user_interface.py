@@ -64,7 +64,7 @@ class _SnappableRectangle:
         self.canvas.latest_rectangle = self
 
     def add_name_and_path(self):
-            self.path = filedialog.askopenfilename(title="Select Valid Discord Cog File", initialdir="storage/", filetypes=(("Discord Cog", "*.py"),))
+            self.path = filedialog.askopenfilename(title="Select Valid Discord Cog File", initialdir="cogs/", filetypes=(("Discord Cog", "*.py"),))
             if not self.path:
                 return
             self.name = os.path.basename(self.path)
