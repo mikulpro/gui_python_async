@@ -19,7 +19,7 @@ class MyBot(commands.Bot):
     # the method to override in order to run whatever you need before your bot starts
     async def setup_hook(self):     #for extencion of initial extencions
         await self.load_extension("loadcog")
-        #await self.load_extension("cogs.basiccog") # optionally commented, missing some features by not being launched at the start
+        await self.load_extension("cogs.basiccog") # optionally commented, missing some features by not being launched at the start
        
 load_dotenv()
 MyBot().run(os.getenv("DISCORD_TOKEN"))

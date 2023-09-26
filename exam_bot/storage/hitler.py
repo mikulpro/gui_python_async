@@ -1,29 +1,8 @@
-from discord.ext import commands
 import aiohttp
 import asyncio
-from bs4 import BeautifulSoup
-import logging
 import time
+from bs4 import BeautifulSoup
 from collections import deque
-
-logger = logging.getLogger('discord.itlerCog')
-
-class FindHitlerCog(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.command()
-    async def startGame(self, ctx, arg):
-        """play wiki game findhitler arg is format: wiki/Superconducting_magnet"""
-
-        await ctx.send(f"sure bud")
-        depth = await main_async(f"https://en.wikipedia.org/{arg}")
-        await ctx.send(f"Found Hitler at depth {depth}")
-
-
-async def setup(bot):
-    await bot.add_cog(FindHitlerCog(bot))
-
 
 async def fetch_page(session, url):
     async with session.get(url) as response:
@@ -55,7 +34,7 @@ async def fetch_main_content_links(session, url, visited, depth, found):
 
     return status, links
 
-async def producer(queue, visited, found, start_url):
+async def producer(queue, visited, found):
     start_url = "https://en.wikipedia.org/wiki/Superconducting_magnet"
     visited.add(start_url)
     queue.append((start_url, 0))
@@ -69,20 +48,12 @@ async def producer(queue, visited, found, start_url):
             if status == "Found":
                 print(f"Found Hitler at depth {depth+1}")
                 found['status'] = True  # Set the flag
-                return depth + 1
                 break
             for link in links:
                 queue.append((link, depth + 1))
 
-async def main_async(start_url):
+async def main_async():
     visited = set()
     queue = deque()
     found = {'status': False}
-    depth = await producer(queue, visited, found, start_url)
-    return depth
-
-
-#TODO 
-# PATH send
-# Fix everything, it just doesnt work how it is supposed to my dreams are broken
-# Logging
+    await producer(queue, visited, found)
