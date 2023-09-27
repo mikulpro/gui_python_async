@@ -1,5 +1,5 @@
 from tkinter import filedialog, Canvas, Button, Tk, N, NW, W, SW, S, SE, E, NE, CENTER
-from core import runni_bota, vypni_bota
+from storage.core import runni_bota, vypni_bota
 import shutil, os, csv, random, threading
 from sender import send_command
 
